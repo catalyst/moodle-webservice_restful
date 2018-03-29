@@ -45,7 +45,7 @@ class webservice_restful_server extends webservice_base_server {
      */
     public function __construct($authmethod) {
         parent::__construct($authmethod);
-        $this->wsname = 'rest';
+        $this->wsname = 'restful';
     }
 
     /**
@@ -64,6 +64,7 @@ class webservice_restful_server extends webservice_base_server {
 
         // Get GET and POST parameters.
         $methodvariables = array_merge($_GET, $_POST);
+        error_log(print_r($_GET), true);
 
         // Retrieve REST format parameter - 'xml' (default) or 'json'.
         $restformatisset = isset($methodvariables['moodlewsrestformat'])
