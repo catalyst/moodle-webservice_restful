@@ -48,6 +48,28 @@ class webservice_restful_server extends webservice_base_server {
         $this->wsname = 'restful';
     }
 
+    private function get_headers($headers=null) {
+
+        if (!$headers){
+            $headers=array();
+            foreach($_SERVER as $key => $value) {
+                if (substr($key, 0, 5) == 'HTTP_') {
+                    $headers[$key] = $value;
+                }
+            }
+        }
+
+        return $headers;
+
+    }
+
+    private function get_wsfunction($getvars=null) {
+        if (!$getvars) {
+
+        }
+
+    }
+
     /**
      * This method parses the $_POST and $_GET superglobals and looks for
      * the following information:
@@ -62,6 +84,12 @@ class webservice_restful_server extends webservice_base_server {
         // Retrieve and clean the POST/GET parameters from the parameters specific to the server.
         parent::set_web_service_call_settings();
 
+        // Get the HTTP Headers.
+        $headers = $this->get_headers();
+
+        // Get the webservice function.
+        $wsfunction = $this->get_wsfunction();
+
         // Get GET and POST parameters.
         $methodvariables = array_merge($_GET, $_POST);
         error_log(print_r($_GET), true);
@@ -72,27 +100,15 @@ class webservice_restful_server extends webservice_base_server {
         $this->restformat = $restformatisset ? $methodvariables['moodlewsrestformat'] : 'xml';
         unset($methodvariables['moodlewsrestformat']);
 
-        if ($this->authmethod == WEBSERVICE_AUTHMETHOD_USERNAME) {
-            $this->username = isset($methodvariables['wsusername']) ? $methodvariables['wsusername'] : null;
-            unset($methodvariables['wsusername']);
 
-            $this->password = isset($methodvariables['wspassword']) ? $methodvariables['wspassword'] : null;
-            unset($methodvariables['wspassword']);
+        $this->token = isset($methodvariables['wstoken']) ? $methodvariables['wstoken'] : null;
+        unset($methodvariables['wstoken']);
 
-            $this->functionname = isset($methodvariables['wsfunction']) ? $methodvariables['wsfunction'] : null;
-            unset($methodvariables['wsfunction']);
+        $this->functionname = isset($methodvariables['wsfunction']) ? $methodvariables['wsfunction'] : null;
+        unset($methodvariables['wsfunction']);
 
-            $this->parameters = $methodvariables;
+        $this->parameters = $methodvariables;
 
-        } else {
-            $this->token = isset($methodvariables['wstoken']) ? $methodvariables['wstoken'] : null;
-            unset($methodvariables['wstoken']);
-
-            $this->functionname = isset($methodvariables['wsfunction']) ? $methodvariables['wsfunction'] : null;
-            unset($methodvariables['wsfunction']);
-
-            $this->parameters = $methodvariables;
-        }
     }
 
     /**
