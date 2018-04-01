@@ -45,7 +45,7 @@ Below are several examples of how to structure requests using the cURL command l
 <pre><code>
 curl -X POST \
 -H "Content-Type: application/json" \
--H 'X-Auth-Token: {token}' \
+-H 'Authorization: {token}' \
 -d ' {
      "search": "*",
      "searchFields": "id, title, content, description1, description2, filetext",
@@ -59,7 +59,7 @@ curl -X POST \
 curl -X POST \
 -H "Content-Type: application/json" \
 -H "Accept: application/json" \
--H 'X-Auth-Token: {token}' \
+-H 'Authorization: {token}' \
 "https://localhost/webservice/restful/server.php/core_course_get_courses"
 </code></pre>
 

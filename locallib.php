@@ -35,21 +35,25 @@ require_once("$CFG->dirroot/webservice/lib.php");
 class webservice_restful_server extends webservice_base_server {
 
     /** @var string return method ('xml' or 'json') */
-    protected $restformat;
+    protected $responseformat;
+
+    /** @var string request method ('xml', 'json', or 'urlencode') */
+    protected $requestformat;
 
     /**
      * Contructor
      *
      * @param string $authmethod authentication method of the web service (WEBSERVICE_AUTHMETHOD_PERMANENT_TOKEN, ...)
-     * @param string $restformat Format of the return values: 'xml' or 'json'
+     * @param string $responseformat Format of the return values: 'xml' or 'json'
      */
     public function __construct($authmethod) {
         parent::__construct($authmethod);
         $this->wsname = 'restful';
+        $this->responseformat = 'json'; // Default to json.
+        $this->requestformat = 'json'; // Default to json.
     }
 
     private function get_headers($headers=null) {
-
         if (!$headers){
             $headers=array();
             foreach($_SERVER as $key => $value) {
@@ -58,15 +62,49 @@ class webservice_restful_server extends webservice_base_server {
                 }
             }
         }
-
         return $headers;
+    }
 
+    private function get_wstoken($headers=array()) {
+        $wstoken = '';
+
+        if (isset($headers['Authorization'])) {
+            $wstoken = $headers['Authorization'];
+        } else {
+            // Raise an error if auth header not supplied
+            $ex = new \moodle_exception('noauthheader', 'webservice_restful', '');
+            $this->send_error($ex, 400);
+
+        }
+
+        return $wstoken;
     }
 
     private function get_wsfunction($getvars=null) {
-        if (!$getvars) {
 
+        // Get GET and POST parameters.
+        $methodvariables = array_merge($_GET, $_POST);
+        error_log(print_r($_GET), true);
+
+        if (!$getvars) {
+            $getvars = array();
+            if (isset($_GET['file'])){
+                $getvars['wsfunction'] = $_GET['file'];
+            } else {
+                // Raise an error if auth header not supplied
+                $ex = new \moodle_exception('nowsfunction', 'webservice_restful', '');
+                $this->send_error($ex, 400);
+            }
         }
+
+        return $wsfunction = $getvars['wsfunction'];
+    }
+
+    private function get_responseformat($headers=array()) {
+
+    }
+
+    private function get_requestformat($headers=array()) {
 
     }
 
@@ -87,25 +125,17 @@ class webservice_restful_server extends webservice_base_server {
         // Get the HTTP Headers.
         $headers = $this->get_headers();
 
+        // Get the webservice token.
+        $this->token = $this->get_wstoken($headers);
+
         // Get the webservice function.
-        $wsfunction = $this->get_wsfunction();
+        $this->functionname = $this->get_wsfunction();
 
-        // Get GET and POST parameters.
-        $methodvariables = array_merge($_GET, $_POST);
-        error_log(print_r($_GET), true);
+        // Get response format.
+        $this->responseformat = $this->get_responseformat();
 
-        // Retrieve REST format parameter - 'xml' (default) or 'json'.
-        $restformatisset = isset($methodvariables['moodlewsrestformat'])
-                && (($methodvariables['moodlewsrestformat'] == 'xml' || $methodvariables['moodlewsrestformat'] == 'json'));
-        $this->restformat = $restformatisset ? $methodvariables['moodlewsrestformat'] : 'xml';
-        unset($methodvariables['moodlewsrestformat']);
-
-
-        $this->token = isset($methodvariables['wstoken']) ? $methodvariables['wstoken'] : null;
-        unset($methodvariables['wstoken']);
-
-        $this->functionname = isset($methodvariables['wsfunction']) ? $methodvariables['wsfunction'] : null;
-        unset($methodvariables['wsfunction']);
+        // Get request format.
+        $this->requestformat = $this->get_requestformat();
 
         $this->parameters = $methodvariables;
 
@@ -132,7 +162,7 @@ class webservice_restful_server extends webservice_base_server {
             $response =  $this->generate_error($exception);
         } else {
             //We can now convert the response to the requested REST format
-            if ($this->restformat == 'json') {
+            if ($this->responseformat == 'json') {
                 $response = json_encode($validatedvalues);
             } else {
                 $response = '<?xml version="1.0" encoding="UTF-8" ?>'."\n";
@@ -153,9 +183,10 @@ class webservice_restful_server extends webservice_base_server {
      *       it only matches the abstract function declaration.
      * @param exception $ex the exception that we are sending
      */
-    protected function send_error($ex=null) {
+    protected function send_error($ex=null, $code=200) {
+        http_response_code($code);
         $this->send_headers();
-        echo $this->generate_error($ex);
+        echo $this->generate_error($ex, );
     }
 
     /**
@@ -164,7 +195,7 @@ class webservice_restful_server extends webservice_base_server {
      * @return string the error in the requested REST format
      */
     protected function generate_error($ex) {
-        if ($this->restformat == 'json') {
+        if ($this->responseformat == 'json') {
             $errorobject = new stdClass;
             $errorobject->exception = get_class($ex);
             $errorobject->errorcode = $ex->errorcode;
@@ -191,7 +222,7 @@ class webservice_restful_server extends webservice_base_server {
      * Internal implementation - sending of page headers.
      */
     protected function send_headers() {
-        if ($this->restformat == 'json') {
+        if ($this->responseformat == 'json') {
             header('Content-type: application/json');
         } else {
             header('Content-Type: application/xml; charset=utf-8');
