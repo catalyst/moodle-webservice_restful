@@ -1,7 +1,10 @@
 # moodle-webservice_restful
 A REStful webservice plugin for Moodle LMS
 
-TODO
+This plugin allows Moodle's webservice interface to operate in a more RESTFul way.<br/>
+Instead of each webservice call having a URL query parameter define what webservice function to use, webservice functions are made to discrete URLS.
+
+This makes it easier to integrate Moodle with modern interfaces that expect a RESTful interface.
 
 ## Why make this Plugin?
 TODO
@@ -39,34 +42,60 @@ Follow these instructions if you do not currently have any webservies enabled an
 
 TODO
 
-## Sample Webservice Call
-Below are several examples of how to structure requests using the cURL command line tool.
-
-<pre><code>
-curl -X POST \
--H "Content-Type: application/json" \
--H "Accept: application/json" \
--H 'Authorization: {token}' \
--d ' {
-     "search": "*",
-     "searchFields": "id, title, content, description1, description2, filetext",
-     "top": 100
-   }
-' \
-"https://localhost/webservice/restful/server.php/core_course_get_courses"
-</code></pre>
-
-<pre><code>
-curl -X POST \
--H "Content-Type: application/json" \
--H "Accept: application/json" \
--H 'Authorization: {token}' \
-"https://localhost/webservice/restful/server.php/core_course_get_courses"
-</code></pre>
-
 ## Accepted Content Types
 TODO
 
 ## Returned Content Types
 TODO
 
+## Differences to Moodle Standard Webservice Interface
+TODO
+
+## Sample Webservice Calls
+Below are several examples of how to structure requests using the cURL command line tool.
+
+### JSON Request
+TODO
+
+<pre><code>
+curl -X POST \
+-H "Content-Type: application/json" \
+-H "Accept: application/json" \
+-H 'Authorization: {token}' \
+"https://localhost/webservice/restful/server.php/core_course_get_courses"
+</code></pre>
+
+### XML Request
+TODO
+
+### REST / Form Request
+TODO
+
+### JSON Response
+TODO
+
+### XML Response
+TODO
+
+### Mixed Request and Response
+TODO
+
+# Crafted by Catalyst IT
+
+This plugin was developed by Catalyst IT Australia:
+
+https://www.catalyst-au.net/
+
+![Catalyst IT](/pix/catalyst-logo.png?raw=true)
+
+
+# Contributing and Support
+
+Issues, and pull requests using github are welcome and encouraged! 
+
+https://github.com/catalyst/moodle-search_elastic/issues
+
+If you would like commercial support or would like to sponsor additional improvements
+to this plugin please contact us:
+
+https://www.catalyst-au.net/contact-us
