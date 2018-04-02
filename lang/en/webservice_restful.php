@@ -25,4 +25,9 @@
  */
 
 $string['pluginname'] = 'RESTful protocol';
-$string['rest:use'] = 'Use RESTful protocol';
+$string['restful:use'] = 'Use RESTful protocol';
+
+$string['noauthheader'] = 'No Authorsiation header found in request sent to Moodle';
+$string['wsfunction'] = 'No webservice funciton found in URL sent to Moodle';
+$string['noacceptheader'] = 'No Accept header found in request sent to Moodle';
+$string['notypeheader'] = 'No Content Type header found in request sent to Moodle';

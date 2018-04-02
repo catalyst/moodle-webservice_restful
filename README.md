@@ -45,6 +45,7 @@ Below are several examples of how to structure requests using the cURL command l
 <pre><code>
 curl -X POST \
 -H "Content-Type: application/json" \
+-H "Accept: application/json" \
 -H 'Authorization: {token}' \
 -d ' {
      "search": "*",

@@ -53,69 +53,137 @@ class webservice_restful_server extends webservice_base_server {
         $this->requestformat = 'json'; // Default to json.
     }
 
+    /**
+     * Extract the HTTP headers out of the request.
+     *
+     * @param array $headers Optional array of headers, to assist with testing.
+     * @return array $headers HTTP headers.
+     */
     private function get_headers($headers=null) {
         if (!$headers){
-            $headers=array();
-            foreach($_SERVER as $key => $value) {
+            $headers = $_SERVER;
+        }
+            $returnheaders=array();
+            foreach($headers as $key => $value) {
                 if (substr($key, 0, 5) == 'HTTP_') {
-                    $headers[$key] = $value;
+                    $returnheaders[$key] = $value;
                 }
             }
-        }
-        return $headers;
+
+        return $returnheaders;
     }
 
-    private function get_wstoken($headers=array()) {
+    /**
+     * Get the webservice authorization token from the request.
+     * Throws error and notifies caller on failure.
+     *
+     * @param array $headers The extracted HTTP headers.
+     * @return string $wstoken The extracted webservice authorization token.
+     */
+    private function get_wstoken($headers) {
         $wstoken = '';
 
-        if (isset($headers['Authorization'])) {
-            $wstoken = $headers['Authorization'];
+        if (isset($headers['HTTP_AUTHORIZATION'])) {
+            $wstoken = $headers['HTTP_AUTHORIZATION'];
         } else {
             // Raise an error if auth header not supplied
             $ex = new \moodle_exception('noauthheader', 'webservice_restful', '');
             $this->send_error($ex, 400);
-
+            die; // We are not recovering or going any further.
         }
 
         return $wstoken;
     }
 
+    /**
+     * Extract the web service funtion to use from the request URL.
+     * Throws error and notifies caller on failure.
+     *
+     * @param array $getvars Optional get variables, used for testing.
+     * @return string $wsfunction The webservice function to call.
+     */
     private function get_wsfunction($getvars=null) {
-
-        // Get GET and POST parameters.
-        $methodvariables = array_merge($_GET, $_POST);
-        error_log(print_r($_GET), true);
-
-        if (!$getvars) {
-            $getvars = array();
-            if (isset($_GET['file'])){
-                $getvars['wsfunction'] = $_GET['file'];
-            } else {
-                // Raise an error if auth header not supplied
-                $ex = new \moodle_exception('nowsfunction', 'webservice_restful', '');
-                $this->send_error($ex, 400);
-            }
+        if (!$getvars){
+            $getvars = $_GET;
         }
 
-        return $wsfunction = $getvars['wsfunction'];
-    }
+        if (isset($getvars['file'])){
+            $wsfunction = ltrim($getvars['file'], '/');
+        } else {
+            // Raise an error if auth header not supplied
+            $ex = new \moodle_exception('nowsfunction', 'webservice_restful', '');
+            $this->send_error($ex, 400);
+            die(); // We are not recovering or going any further.
+            }
 
-    private function get_responseformat($headers=array()) {
-
-    }
-
-    private function get_requestformat($headers=array()) {
-
+        return $wsfunction;
     }
 
     /**
-     * This method parses the $_POST and $_GET superglobals and looks for
-     * the following information:
-     *  1/ user authentication - username+password or token (wsusername, wspassword and wstoken parameters)
-     *  2/ function name (wsfunction parameter)
-     *  3/ function parameters (all other parameters except those above)
-     *  4/ text format parameters
-     *  5/ return rest format xml/json
+     * Get the format to use for the client response.
+     * Throws error and notifies caller on failure.
+     *
+     * @param array $headers The HTTP headers.
+     * @return string $responseformat The format of the client response.
+     */
+    private function get_responseformat($headers) {
+        $responseformat = '';
+
+        if (isset($headers['HTTP_ACCEPT'])) {
+            $responseformat = ltrim($headers['HTTP_ACCEPT'], 'application/');
+        } else {
+            // Raise an error if auth header not supplied
+            $ex = new \moodle_exception('noacceptheader', 'webservice_restful', '');
+            $this->send_error($ex, 400);
+            die; // We are not recovering or going any further.
+        }
+
+        return $responseformat;
+    }
+
+    /**
+     * Get the format of the client request.
+     * Throws error and notifies caller on failure.
+     *
+     * @param array $headers The HTTP headers.
+     * @return string $requestformat The format of the client request.
+     */
+    private function get_requestformat($headers) {
+        $requestformat = '';
+
+        if (isset($headers['HTTP_CONTENT_TYPE'])) {
+            $requestformat = ltrim($headers['HTTP_CONTENT_TYPE'], 'application/');
+        } else {
+            // Raise an error if auth header not supplied
+            $ex = new \moodle_exception('notypeheader', 'webservice_restful', '');
+            $this->send_error($ex, 400);
+            die; // We are not recovering or going any further.
+        }
+
+        return $requestformat;
+    }
+
+    /**
+     * Get the parameters to pass to the webservice function
+     *
+     * @return mixed $input The parameters to use with the webservice.
+     */
+    private function get_parameters() {
+        if ($this->requestformat == 'json') {
+            $parametersjson = file_get_contents('php://input');
+            $parameters = json_decode($parametersjson, TRUE); //convert JSON into array.
+        } else {
+            $parameters = $_POST;
+        }
+
+        return $parameters;
+    }
+
+    /**
+     * This method parses the request sent to Moodle
+     * and extracts and validates the supplied data.
+     *
+     * @return void
      */
     protected function parse_request() {
 
@@ -128,22 +196,24 @@ class webservice_restful_server extends webservice_base_server {
         // Get the webservice token.
         $this->token = $this->get_wstoken($headers);
 
+        // Get response format.
+        $this->responseformat = $this->get_responseformat($headers);
+
+        // Get request format.
+        $this->requestformat = $this->get_requestformat($headers);
+
         // Get the webservice function.
         $this->functionname = $this->get_wsfunction();
 
-        // Get response format.
-        $this->responseformat = $this->get_responseformat();
-
-        // Get request format.
-        $this->requestformat = $this->get_requestformat();
-
-        $this->parameters = $methodvariables;
+        // Get the webservice function parameters.
+        $this->parameters = $this->get_parameters();
 
     }
 
     /**
-     * Send the result of function call to the WS client
-     * formatted as XML document.
+     * Send the result of function call to the WS client.
+     *
+     * @return void
      */
     protected function send_response() {
 
@@ -186,7 +256,7 @@ class webservice_restful_server extends webservice_base_server {
     protected function send_error($ex=null, $code=200) {
         http_response_code($code);
         $this->send_headers();
-        echo $this->generate_error($ex, );
+        echo $this->generate_error($ex);
     }
 
     /**
@@ -278,26 +348,5 @@ class webservice_restful_server extends webservice_base_server {
             $single .= '</SINGLE>'."\n";
             return $single;
         }
-    }
-}
-
-
-/**
- * RESTful test client class
- *
- * @package    webservice_restful
- * @copyright  Matt Porritt <mattp@catalyst-au.net>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-class webservice_restful_test_client implements webservice_test_client_interface {
-    /**
-     * Execute test client WS request
-     * @param string $serverurl server url (including token parameter or username/password parameters)
-     * @param string $function function name
-     * @param array $params parameters of the called function
-     * @return mixed
-     */
-    public function simpletest($serverurl, $function, $params) {
-        return download_file_content($serverurl.'&wsfunction='.$function, null, $params);
     }
 }
