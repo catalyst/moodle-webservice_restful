@@ -171,8 +171,11 @@ class webservice_restful_server extends webservice_base_server {
     private function get_parameters() {
         if ($this->requestformat == 'json') {
             $parametersjson = file_get_contents('php://input');
-            $parameters = json_decode($parametersjson, TRUE); //convert JSON into array.
-        } else {
+            $parameters = json_decode($parametersjson, TRUE); // Convert JSON into array.
+        } else if ($this->requestformat == 'xml') {
+            $parametersxml = simplexml_load_string(file_get_contents('php://input'));
+            $parameters = json_decode(json_encode($parametersxml), TRUE); // Dirty XML to JSON to PHP array conversion.
+        }  else {
             $parameters = $_POST;
         }
 
