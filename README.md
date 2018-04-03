@@ -118,13 +118,17 @@ curl -X POST \
 -H "Content-Type: application/xml" \
 -H "Accept: application/xml" \
 -H 'Authorization: {token}' \
--d'<root>
+-d'
+```xml
+<root>
    <options>
       <ids>
          <element>6</element>
       </ids>
    </options>
-</root>' \
+</root>
+```
+' \
 "https://localhost/webservice/restful/server.php/core_course_get_courses"
 </code></pre>
 
