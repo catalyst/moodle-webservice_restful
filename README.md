@@ -171,6 +171,7 @@ curl -X POST \
 The received response will look like:
 
 <pre><code>
+```xml
 <RESPONSE>
 <MULTIPLE>
 <SINGLE>
@@ -182,6 +183,7 @@ The received response will look like:
 </KEY>
 <KEY name="categorysortorder"><VALUE>10003</VALUE>
 </KEY>
+```
 ...
 </code></pre>
 
