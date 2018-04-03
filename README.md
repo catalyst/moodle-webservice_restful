@@ -119,16 +119,13 @@ curl -X POST \
 -H "Accept: application/xml" \
 -H 'Authorization: {token}' \
 -d'
-```xml
-<root>
-   <options>
-      <ids>
-         <element>6</element>
-      </ids>
-   </options>
-</root>
-```
-' \
+&lt;root&gt;
+   &lt;options&gt;
+      &lt;ids&gt;
+         &lt;element&gt;6&lt;/element&gt;
+      &lt;/ids&gt;
+   &lt;/options&gt;
+&lt;/root&gt;' \
 "https://localhost/webservice/restful/server.php/core_course_get_courses"
 </code></pre>
 
@@ -171,19 +168,17 @@ curl -X POST \
 The received response will look like:
 
 <pre><code>
-```xml
-<RESPONSE>
-<MULTIPLE>
-<SINGLE>
-<KEY name="id"><VALUE>6</VALUE>
-</KEY>
-<KEY name="shortname"><VALUE>search test</VALUE>
-</KEY>
-<KEY name="categoryid"><VALUE>1</VALUE>
-</KEY>
-<KEY name="categorysortorder"><VALUE>10003</VALUE>
-</KEY>
-```
+&lt;RESPONSE&gt;
+&lt;MULTIPLE&gt;
+&lt;SINGLE&gt;
+&lt;KEY name="id"&gt;&lt;VALUE&gt;6&lt;/VALUE&gt;
+&lt;/KEY&gt;
+&lt;KEY name="shortname"&gt;&lt;VALUE&gt;search test&lt;/VALUE&gt;
+&lt;/KEY&gt;
+&lt;KEY name="categoryid"&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;
+&lt;/KEY&gt;
+&lt;KEY name="categorysortorder"&gt;&lt;VALUE&gt;10003&lt;/VALUE&gt;
+&lt;/KEY&gt;
 ...
 </code></pre>
 
