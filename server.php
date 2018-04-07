@@ -19,7 +19,7 @@
  * RESTful web service entry point. The authentication is done via header tokens.
  *
  * @package    webservice_restful
- * @copyright  2009 Jerome Mouneyrac
+ * @copyright  Matt Porritt <mattp@catalyst-au.net>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 

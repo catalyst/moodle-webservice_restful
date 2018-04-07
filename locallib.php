@@ -63,12 +63,12 @@ class webservice_restful_server extends webservice_base_server {
         if (!$headers){
             $headers = $_SERVER;
         }
-            $returnheaders=array();
-            foreach($headers as $key => $value) {
-                if (substr($key, 0, 5) == 'HTTP_') {
-                    $returnheaders[$key] = $value;
-                }
+        $returnheaders=array();
+        foreach($headers as $key => $value) {
+            if (substr($key, 0, 5) == 'HTTP_') {
+                $returnheaders[$key] = $value;
             }
+        }
 
         return $returnheaders;
     }
