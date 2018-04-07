@@ -168,14 +168,17 @@ class webservice_restful_server extends webservice_base_server {
      *
      * @return mixed $input The parameters to use with the webservice.
      */
-    private function get_parameters() {
+    private function get_parameters($content='') {
+        if (!$content) {
+            $content = file_get_contents('php://input');
+        }
+
         if ($this->requestformat == 'json') {
-            $parametersjson = file_get_contents('php://input');
-            $parameters = json_decode($parametersjson, TRUE); // Convert JSON into array.
+            $parameters = json_decode($content, TRUE); // Convert JSON into array.
         } else if ($this->requestformat == 'xml') {
-            $parametersxml = simplexml_load_string(file_get_contents('php://input'));
+            $parametersxml = simplexml_load_string($content);
             $parameters = json_decode(json_encode($parametersxml), TRUE); // Dirty XML to JSON to PHP array conversion.
-        }  else {
+        }  else {  // Data provided in as URL encoded.
             $parameters = $_POST;
         }
 
