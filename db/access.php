@@ -24,11 +24,13 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+defined('MOODLE_INTERNAL') || die();
+
 $capabilities = array(
 
     'webservice/restful:use' => array(
-        'captype' => 'read', // in fact this may be considered read and write at the same time
-        'contextlevel' => CONTEXT_COURSE, // the context level should be probably CONTEXT_MODULE
+        'captype' => 'read', // In fact this may be considered read and write at the same time.
+        'contextlevel' => CONTEXT_COURSE, // The context level should be probably CONTEXT_MODULE.
         'archetypes' => array(
         ),
     ),

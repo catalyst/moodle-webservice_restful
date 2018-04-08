@@ -27,7 +27,6 @@
  * NO_DEBUG_DISPLAY - disable moodle specific debug messages and any errors in output
  */
 define('NO_DEBUG_DISPLAY', true);
-
 define('WS_SERVER', true);
 
 require('../../config.php');

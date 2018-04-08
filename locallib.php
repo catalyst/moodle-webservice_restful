@@ -23,6 +23,8 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+defined('MOODLE_INTERNAL') || die();
+
 require_once("$CFG->dirroot/webservice/lib.php");
 
 /**
@@ -44,7 +46,6 @@ class webservice_restful_server extends webservice_base_server {
      * Contructor
      *
      * @param string $authmethod authentication method of the web service (WEBSERVICE_AUTHMETHOD_PERMANENT_TOKEN, ...)
-     * @param string $responseformat Format of the return values: 'xml' or 'json'
      */
     public function __construct($authmethod) {
         parent::__construct($authmethod);
@@ -60,11 +61,11 @@ class webservice_restful_server extends webservice_base_server {
      * @return array $headers HTTP headers.
      */
     private function get_headers($headers=null) {
-        if (!$headers){
+        if (!$headers) {
             $headers = $_SERVER;
         }
-        $returnheaders=array();
-        foreach($headers as $key => $value) {
+        $returnheaders = array();
+        foreach ($headers as $key => $value) {
             if (substr($key, 0, 5) == 'HTTP_') {
                 $returnheaders[$key] = $value;
             }
@@ -86,7 +87,7 @@ class webservice_restful_server extends webservice_base_server {
         if (isset($headers['HTTP_AUTHORIZATION'])) {
             $wstoken = $headers['HTTP_AUTHORIZATION'];
         } else {
-            // Raise an error if auth header not supplied
+            // Raise an error if auth header not supplied.
             $ex = new \moodle_exception('noauthheader', 'webservice_restful', '');
             $this->send_error($ex, 401);
         }
@@ -104,17 +105,17 @@ class webservice_restful_server extends webservice_base_server {
     private function get_wsfunction($getvars=null) {
         $wsfunction = '';
 
-        if (!$getvars){
+        if (!$getvars) {
             $getvars = $_GET;
         }
 
-        if (isset($getvars['file'])){
+        if (isset($getvars['file'])) {
             $wsfunction = ltrim($getvars['file'], '/');
         } else {
-            // Raise an error if function not supplied
+            // Raise an error if function not supplied.
             $ex = new \moodle_exception('nowsfunction', 'webservice_restful', '');
             $this->send_error($ex, 400);
-            }
+        }
 
         return $wsfunction;
     }
@@ -132,7 +133,7 @@ class webservice_restful_server extends webservice_base_server {
         if (isset($headers['HTTP_ACCEPT'])) {
             $responseformat = ltrim($headers['HTTP_ACCEPT'], 'application/');
         } else {
-            // Raise an error if accept header not supplied
+            // Raise an error if accept header not supplied.
             $ex = new \moodle_exception('noacceptheader', 'webservice_restful', '');
             $this->send_error($ex, 400);
         }
@@ -153,7 +154,7 @@ class webservice_restful_server extends webservice_base_server {
         if (isset($headers['HTTP_CONTENT_TYPE'])) {
             $requestformat = ltrim($headers['HTTP_CONTENT_TYPE'], 'application/');
         } else {
-            // Raise an error if content header not supplied
+            // Raise an error if content header not supplied.
             $ex = new \moodle_exception('notypeheader', 'webservice_restful', '');
             $this->send_error($ex, 400);
         }
@@ -164,6 +165,7 @@ class webservice_restful_server extends webservice_base_server {
     /**
      * Get the parameters to pass to the webservice function
      *
+     * @param array $content the content to parse.
      * @return mixed $input The parameters to use with the webservice.
      */
     private function get_parameters($content='') {
@@ -172,11 +174,11 @@ class webservice_restful_server extends webservice_base_server {
         }
 
         if ($this->requestformat == 'json') {
-            $parameters = json_decode($content, TRUE); // Convert JSON into array.
+            $parameters = json_decode($content, true); // Convert JSON into array.
         } else if ($this->requestformat == 'xml') {
             $parametersxml = simplexml_load_string($content);
-            $parameters = json_decode(json_encode($parametersxml), TRUE); // Dirty XML to JSON to PHP array conversion.
-        }  else {  // Data provided in as URL encoded.
+            $parameters = json_decode(json_encode($parametersxml), true); // Dirty XML to JSON to PHP array conversion.
+        } else {  // Data provided in as URL encoded.
             $parameters = $_POST;
         }
 
@@ -233,29 +235,29 @@ class webservice_restful_server extends webservice_base_server {
     public function run() {
         global $CFG, $SESSION;
 
-        // we will probably need a lot of memory in some functions
+        // We will probably need a lot of memory in some functions.
         raise_memory_limit(MEMORY_EXTRA);
 
-        // set some longer timeout, this script is not sending any output,
+        // Set some longer timeout, this script is not sending any output,
         // this means we need to manually extend the timeout operations
-        // that need longer time to finish
+        // that need longer time to finish.
         external_api::set_timeout();
 
-        // set up exception handler first, we want to sent them back in correct format that
-        // the other system understands
-        // we do not need to call the original default handler because this ws handler does everything
+        // Set up exception handler first, we want to sent them back in correct format that
+        // the other system understands.
+        // We do not need to call the original default handler because this ws handler does everything.
         set_exception_handler(array($this, 'exception_handler'));
 
-        // init all properties from the request data
+        // Init all properties from the request data.
         if (!$this->parse_request()) {
             die;
         };
 
-        // authenticate user, this has to be done after the request parsing
-        // this also sets up $USER and $SESSION
+        // Authenticate user, this has to be done after the request parsing
+        // this also sets up $USER and $SESSION.
         $this->authenticate_user();
 
-        // find all needed function info and make sure user may actually execute the function
+        // Find all needed function info and make sure user may actually execute the function.
         $this->load_function_info();
 
         // Log the web service request.
@@ -285,13 +287,13 @@ class webservice_restful_server extends webservice_base_server {
             }
         }
 
-        // finally, execute the function - any errors are catched by the default exception handler
+        // Finally, execute the function - any errors are catched by the default exception handler.
         $this->execute();
 
-        // send the results back in correct format
+        // Send the results back in correct format.
         $this->send_response();
 
-        // session cleanup
+        // Session cleanup.
         $this->session_cleanup();
 
         die;
@@ -304,7 +306,7 @@ class webservice_restful_server extends webservice_base_server {
      */
     protected function send_response() {
 
-        //Check that the returned values are valid
+        // Check that the returned values are valid.
         try {
             if ($this->function->returns_desc != null) {
                 $validatedvalues = external_api::clean_returnvalue($this->function->returns_desc, $this->returns);
@@ -316,9 +318,9 @@ class webservice_restful_server extends webservice_base_server {
         }
 
         if (!empty($exception)) {
-            $response =  $this->generate_error($exception);
+            $response = $this->generate_error($exception);
         } else {
-            //We can now convert the response to the requested REST format
+            // We can now convert the response to the requested REST format.
             if ($this->responseformat == 'json') {
                 $response = json_encode($validatedvalues);
             } else {
@@ -338,7 +340,9 @@ class webservice_restful_server extends webservice_base_server {
      * formatted as XML document.
      * Note: the exception is never passed as null,
      *       it only matches the abstract function declaration.
-     * @param exception $ex the exception that we are sending
+     *
+     * @param exception $ex the exception that we are sending.
+     * @param integer $code The HTTP response code to return.
      */
     protected function send_error($ex=null, $code=400) {
         // Sniffing for unit tests running alwasys feels like a hack.
@@ -382,6 +386,8 @@ class webservice_restful_server extends webservice_base_server {
 
     /**
      * Internal implementation - sending of page headers.
+     *
+     * @param integer $code The HTTP response code to return.
      */
     protected function send_headers($code=200) {
         if ($this->responseformat == 'json') {
@@ -413,7 +419,7 @@ class webservice_restful_server extends webservice_base_server {
 
         } else if ($desc instanceof external_value) {
             if (is_bool($returns)) {
-                // we want 1/0 instead of true/false here
+                // We want 1/0 instead of true/false here.
                 $returns = (int)$returns;
             }
             if (is_null($returns)) {
@@ -434,7 +440,7 @@ class webservice_restful_server extends webservice_base_server {
 
         } else if ($desc instanceof external_single_structure) {
             $single = '<SINGLE>'."\n";
-            foreach ($desc->keys as $key=>$subdesc) {
+            foreach ($desc->keys as $key => $subdesc) {
                 $value = isset($returns[$key]) ? $returns[$key] : null;
                 $single .= '<KEY name="'.$key.'">'.self::xmlize_result($value, $subdesc).'</KEY>'."\n";
             }
