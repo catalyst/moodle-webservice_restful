@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/mattporritt/moodle-webservice_restful.svg?branch=master)](https://travis-ci.org/mattporritt/moodle-webservice_restful)
+
 # moodle-webservice_restful
 A REStful webservice plugin for Moodle LMS
 
