@@ -103,6 +103,22 @@ class webservice_restful_server_testcase extends advanced_testcase {
     }
 
     /**
+     * Test get wstoken method correctly errors.
+     *
+     */
+    public function test_get_wstoken_error() {
+        $headers = array();
+        $this->expectOutputString('{"exception":"moodle_exception",'
+                                .'"errorcode":"noauthheader",'
+                                .'"message":"No Authorsiation header found in request sent to Moodle"}');
+
+        // We're testing a private method, so we need to setup reflector magic.
+        $method = new ReflectionMethod('webservice_restful_server', 'get_wstoken');
+        $method->setAccessible(true); // Allow accessing of private method.
+        $proxy = $method->invoke(new webservice_restful_server(WEBSERVICE_AUTHMETHOD_PERMANENT_TOKEN), $headers);
+    }
+
+    /**
      * Test get wsfunction method extracts function.
      */
     public function test_get_wsfunction() {
@@ -122,7 +138,22 @@ class webservice_restful_server_testcase extends advanced_testcase {
     }
 
     /**
-     * Test get responseformat method extracts response format.
+     * Test get wsfunction method correctly errors.
+     */
+    public function test_get_wsfunction_error() {
+        $getvars = array();
+        $this->expectOutputString('{"exception":"moodle_exception",'
+                                .'"errorcode":"nowsfunction",'
+                                .'"message":"No webservice funciton found in URL sent to Moodle"}');
+
+        // We're testing a private method, so we need to setup reflector magic.
+        $method = new ReflectionMethod('webservice_restful_server', 'get_wsfunction');
+        $method->setAccessible(true); // Allow accessing of private method.
+        $proxy = $method->invoke(new webservice_restful_server(WEBSERVICE_AUTHMETHOD_PERMANENT_TOKEN), $getvars);
+    }
+
+    /**
+     * Test get response format method extracts response format.
      */
     public function test_get_responseformat() {
         $headers = array(
@@ -146,7 +177,22 @@ class webservice_restful_server_testcase extends advanced_testcase {
     }
 
     /**
-     * Test get requestformat method extracts request format.
+     * Test get response format method correctly errors.
+     */
+    public function test_get_responseformat_error() {
+        $headers = array();
+        $this->expectOutputString('{"exception":"moodle_exception",'
+                                .'"errorcode":"noacceptheader",'
+                                .'"message":"No Accept header found in request sent to Moodle"}');
+
+        // We're testing a private method, so we need to setup reflector magic.
+        $method = new ReflectionMethod('webservice_restful_server', 'get_responseformat');
+        $method->setAccessible(true); // Allow accessing of private method.
+        $proxy = $method->invoke(new webservice_restful_server(WEBSERVICE_AUTHMETHOD_PERMANENT_TOKEN), $headers);
+    }
+
+    /**
+     * Test get request format method extracts request format.
      */
     public function test_get_requestformat() {
         $headers = array(
@@ -167,5 +213,20 @@ class webservice_restful_server_testcase extends advanced_testcase {
         $proxy = $method->invoke($stub, $headers); // Get result of invoked method.
 
         $this->assertEquals($expected, $proxy);
+    }
+
+    /**
+     * Test get request format method correctly errors.
+     */
+    public function test_get_requestformat_error() {
+        $headers = array();
+        $this->expectOutputString('{"exception":"moodle_exception",'
+            .'"errorcode":"notypeheader",'
+            .'"message":"No Content Type header found in request sent to Moodle"}');
+
+        // We're testing a private method, so we need to setup reflector magic.
+        $method = new ReflectionMethod('webservice_restful_server', 'get_requestformat');
+        $method->setAccessible(true); // Allow accessing of private method.
+        $proxy = $method->invoke(new webservice_restful_server(WEBSERVICE_AUTHMETHOD_PERMANENT_TOKEN), $headers);
     }
 }

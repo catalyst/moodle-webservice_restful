@@ -182,6 +182,50 @@ The received response will look like:
 ...
 </code></pre>
 
+## Error Examples
+The following cURL example will generate various types of errors. These are useful when testing.
+
+### No Aauthorization Header
+This request is missing the authorization header.
+
+<pre><code>
+curl -i -X POST \
+-H "Content-Type: application/json" \
+-H "Accept: application/json" \
+-d'{"options": {"ids":[6]}}' \
+"http://moodle.local/webservice/restful/server.php/core_course_get_courses"
+</code></pre>
+
+### Invalid Token
+This request contains an invalid webservice token.
+
+<pre><code>
+curl -i -X POST \
+-H "Content-Type: application/json" \
+-H "Accept: application/json" \
+-H 'Authorization: xxx' \
+-d'{"options": {"ids":[6]}}' \
+"http://moodle.local/webservice/restful/server.php/core_course_get_courses"
+</code></pre>
+
+### No Accept Header
+This request is missing the Accept header.
+
+<pre><code>
+curl -i -X POST \
+-H -i "Content-Type: application/json" \
+-H 'Authorization: e71561c88ca7f0f0c94fee66ca07247b' \
+-d'{"options": {"ids":[6]}}' \
+"http://moodle.local/webservice/restful/server.php/core_course_get_courses"
+</code></pre>
+
+
+## Roadmap
+The next big step will be to update the interface to "Level 2" that is support HTTP verbs, like get and post.<br/>
+Which verb to use will likely be dependant on the ws function name that is being invoked.
+
+If you have any suggestions for functionality, they can be requests by raising a GitHub issue: https://github.com/catalyst/moodle-webservice_restful/issues
+
 # Crafted by Catalyst IT
 
 This plugin was developed by Catalyst IT Australia:

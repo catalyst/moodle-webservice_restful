@@ -88,8 +88,7 @@ class webservice_restful_server extends webservice_base_server {
         } else {
             // Raise an error if auth header not supplied
             $ex = new \moodle_exception('noauthheader', 'webservice_restful', '');
-            $this->send_error($ex, 400);
-            die; // We are not recovering or going any further.
+            $this->send_error($ex, 401);
         }
 
         return $wstoken;
@@ -103,6 +102,8 @@ class webservice_restful_server extends webservice_base_server {
      * @return string $wsfunction The webservice function to call.
      */
     private function get_wsfunction($getvars=null) {
+        $wsfunction = '';
+
         if (!$getvars){
             $getvars = $_GET;
         }
@@ -110,10 +111,9 @@ class webservice_restful_server extends webservice_base_server {
         if (isset($getvars['file'])){
             $wsfunction = ltrim($getvars['file'], '/');
         } else {
-            // Raise an error if auth header not supplied
+            // Raise an error if function not supplied
             $ex = new \moodle_exception('nowsfunction', 'webservice_restful', '');
             $this->send_error($ex, 400);
-            die(); // We are not recovering or going any further.
             }
 
         return $wsfunction;
@@ -132,10 +132,9 @@ class webservice_restful_server extends webservice_base_server {
         if (isset($headers['HTTP_ACCEPT'])) {
             $responseformat = ltrim($headers['HTTP_ACCEPT'], 'application/');
         } else {
-            // Raise an error if auth header not supplied
+            // Raise an error if accept header not supplied
             $ex = new \moodle_exception('noacceptheader', 'webservice_restful', '');
             $this->send_error($ex, 400);
-            die; // We are not recovering or going any further.
         }
 
         return $responseformat;
@@ -154,10 +153,9 @@ class webservice_restful_server extends webservice_base_server {
         if (isset($headers['HTTP_CONTENT_TYPE'])) {
             $requestformat = ltrim($headers['HTTP_CONTENT_TYPE'], 'application/');
         } else {
-            // Raise an error if auth header not supplied
+            // Raise an error if content header not supplied
             $ex = new \moodle_exception('notypeheader', 'webservice_restful', '');
             $this->send_error($ex, 400);
-            die; // We are not recovering or going any further.
         }
 
         return $requestformat;
@@ -199,21 +197,104 @@ class webservice_restful_server extends webservice_base_server {
         // Get the HTTP Headers.
         $headers = $this->get_headers();
 
-        // Get the webservice token.
-        $this->token = $this->get_wstoken($headers);
+        // Get the webservice token or return false.
+        if (!($this->token = $this->get_wstoken($headers))) {
+            return false;
+        }
 
-        // Get response format.
-        $this->responseformat = $this->get_responseformat($headers);
+        // Get response format or return false.
+        if (!($this->responseformat = $this->get_responseformat($headers))) {
+            return false;
+        }
 
-        // Get request format.
-        $this->requestformat = $this->get_requestformat($headers);
+        // Get request format or return false.
+        if (!($this->requestformat = $this->get_requestformat($headers))) {
+            return false;
+        }
 
-        // Get the webservice function.
-        $this->functionname = $this->get_wsfunction();
+        // Get the webservice function or return false.
+        if (!($this->functionname = $this->get_wsfunction())) {
+            return false;
+        }
 
-        // Get the webservice function parameters.
-        $this->parameters = $this->get_parameters();
+        // Get the webservice function parameters or return false.
+        if (!($this->parameters = $this->get_parameters())) {
+            return false;
+        }
 
+        return true;
+    }
+
+    /**
+     * Process request from client.
+     *
+     * @uses die
+     */
+    public function run() {
+        global $CFG, $SESSION;
+
+        // we will probably need a lot of memory in some functions
+        raise_memory_limit(MEMORY_EXTRA);
+
+        // set some longer timeout, this script is not sending any output,
+        // this means we need to manually extend the timeout operations
+        // that need longer time to finish
+        external_api::set_timeout();
+
+        // set up exception handler first, we want to sent them back in correct format that
+        // the other system understands
+        // we do not need to call the original default handler because this ws handler does everything
+        set_exception_handler(array($this, 'exception_handler'));
+
+        // init all properties from the request data
+        if (!$this->parse_request()) {
+            die;
+        };
+
+        // authenticate user, this has to be done after the request parsing
+        // this also sets up $USER and $SESSION
+        $this->authenticate_user();
+
+        // find all needed function info and make sure user may actually execute the function
+        $this->load_function_info();
+
+        // Log the web service request.
+        $params = array(
+            'other' => array(
+                'function' => $this->functionname
+            )
+        );
+        $event = \core\event\webservice_function_called::create($params);
+        $event->set_legacy_logdata(array(SITEID, 'webservice', $this->functionname, '' , getremoteaddr() , 0, $this->userid));
+        $event->trigger();
+
+        // Do additional setup stuff.
+        $settings = external_settings::get_instance();
+        $sessionlang = $settings->get_lang();
+        if (!empty($sessionlang)) {
+            $SESSION->lang = $sessionlang;
+        }
+
+        setup_lang_from_browser();
+
+        if (empty($CFG->lang)) {
+            if (empty($SESSION->lang)) {
+                $CFG->lang = 'en';
+            } else {
+                $CFG->lang = $SESSION->lang;
+            }
+        }
+
+        // finally, execute the function - any errors are catched by the default exception handler
+        $this->execute();
+
+        // send the results back in correct format
+        $this->send_response();
+
+        // session cleanup
+        $this->session_cleanup();
+
+        die;
     }
 
     /**
@@ -259,9 +340,14 @@ class webservice_restful_server extends webservice_base_server {
      *       it only matches the abstract function declaration.
      * @param exception $ex the exception that we are sending
      */
-    protected function send_error($ex=null, $code=200) {
-        http_response_code($code);
-        $this->send_headers();
+    protected function send_error($ex=null, $code=400) {
+        // Sniffing for unit tests running alwasys feels like a hack.
+        // We need to do this otherwise it will conflict with the headers
+        // sent by PHPUNIT.
+        if (!PHPUNIT_TEST) {
+            http_response_code($code);
+            $this->send_headers($code);
+        }
         echo $this->generate_error($ex);
     }
 
@@ -271,7 +357,7 @@ class webservice_restful_server extends webservice_base_server {
      * @return string the error in the requested REST format
      */
     protected function generate_error($ex) {
-        if ($this->responseformat == 'json') {
+        if ($this->responseformat != 'xml') {
             $errorobject = new stdClass;
             $errorobject->exception = get_class($ex);
             $errorobject->errorcode = $ex->errorcode;
@@ -297,13 +383,14 @@ class webservice_restful_server extends webservice_base_server {
     /**
      * Internal implementation - sending of page headers.
      */
-    protected function send_headers() {
+    protected function send_headers($code=200) {
         if ($this->responseformat == 'json') {
             header('Content-type: application/json');
         } else {
             header('Content-Type: application/xml; charset=utf-8');
             header('Content-Disposition: inline; filename="response.xml"');
         }
+        header('X-PHP-Response-Code: '.$code, true, $code);
         header('Cache-Control: private, must-revalidate, pre-check=0, post-check=0, max-age=0');
         header('Expires: '. gmdate('D, d M Y H:i:s', 0) .' GMT');
         header('Pragma: no-cache');
