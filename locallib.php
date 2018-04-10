@@ -105,13 +105,20 @@ class webservice_restful_server extends webservice_base_server {
     private function get_wsfunction($getvars=null) {
         $wsfunction = '';
 
-        if (!$getvars) {
-            $getvars = $_GET;
+        // Testing has found that there is varying methods across webservers,
+        // so we try a few ways.
+
+        if ($getvars) { // Check to see if we are passing hte function explictly.
+            $wsfunction = ltrim($getvars['file'], '/');
+        } else if (isset($_GET['file'])) { // Try get variables.
+            $wsfunction = ltrim($_GET['file'], '/');
+        } else if (isset($_SERVER['PATH_INFO'])) { // Try path info from server super global.
+            $wsfunction = ltrim($_SERVER['PATH_INFO'], '/');
+        } else if (isset($_SERVER['REQUEST_URI'])) { // Try request URI from server super global.
+            $wsfunction = substr($_SERVER['REQUEST_URI'], strrpos($_SERVER['REQUEST_URI'], '/') + 1);
         }
 
-        if (isset($getvars['file'])) {
-            $wsfunction = ltrim($getvars['file'], '/');
-        } else {
+        if ($wsfunction == '') {
             // Raise an error if function not supplied.
             $ex = new \moodle_exception('nowsfunction', 'webservice_restful', '');
             $this->send_error($ex, 400);
