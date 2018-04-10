@@ -279,21 +279,23 @@ class webservice_restful_server extends webservice_base_server {
 
         // Do additional setup stuff.
         $settings = external_settings::get_instance();
-        $sessionlang = $settings->get_lang();
-        if (!empty($sessionlang)) {
-            $SESSION->lang = $sessionlang;
-        }
+        if (method_exists($settings , 'get_lang')) {
 
-        setup_lang_from_browser();
+            $sessionlang = $settings->get_lang();
+            if (!empty($sessionlang)) {
+                $SESSION->lang = $sessionlang;
+            }
 
-        if (empty($CFG->lang)) {
-            if (empty($SESSION->lang)) {
-                $CFG->lang = 'en';
-            } else {
-                $CFG->lang = $SESSION->lang;
+            setup_lang_from_browser();
+
+            if (empty($CFG->lang)) {
+                if (empty($SESSION->lang)) {
+                    $CFG->lang = 'en';
+                } else {
+                    $CFG->lang = $SESSION->lang;
+                }
             }
         }
-
         // Finally, execute the function - any errors are catched by the default exception handler.
         $this->execute();
 
