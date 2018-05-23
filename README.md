@@ -30,6 +30,7 @@ This plugin currently supports Moodle:
 * 3.2
 * 3.3
 * 3.4
+* 3.5
 
 ## Moodle Plugin Installation
 The following sections outline how to install the Moodle plugin.
