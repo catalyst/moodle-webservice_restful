@@ -14,21 +14,32 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-
 /**
- * Strings for component 'webservice_restful', language 'en'
+ * Privacy provider implementation for webservice_restful.
  *
  * @package    webservice_restful
- * @category   string
  * @copyright  Matt Porritt <mattp@catalyst-au.net>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-$string['pluginname'] = 'RESTful protocol';
-$string['restful:use'] = 'Use RESTful protocol';
+namespace webservice_rest\privacy;
 
-$string['noauthheader'] = 'No Authorsiation header found in request sent to Moodle';
-$string['nowsfunction'] = 'No webservice funciton found in URL sent to Moodle';
-$string['noacceptheader'] = 'No Accept header found in request sent to Moodle';
-$string['notypeheader'] = 'No Content Type header found in request sent to Moodle';
-$string['privacy:metadata'] = 'The RESTful protocol plugin does not store any personal data.';
+defined('MOODLE_INTERNAL') || die();
+
+/**
+ * Privacy provider implementation for webservice_restful.
+ *
+ * @copyright  2018 Mihail Geshoski <mihail@moodle.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class provider implements \core_privacy\local\metadata\null_provider {
+    /**
+     * Get the language string identifier with the component's language
+     * file to explain why this plugin stores no data.
+     *
+     * @return  string
+     */
+    public static function get_reason() {
+        return 'privacy:metadata';
+    }
+}
