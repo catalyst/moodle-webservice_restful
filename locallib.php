@@ -55,19 +55,52 @@ class webservice_restful_server extends webservice_base_server {
     }
 
     /**
+     * Get headers from Apache websever.
+     *
+     * @return array $returnheaders The headers from Apache.
+     */
+    private function get_apache_headers() {
+        $capitalizearray = array(
+            'Content-Type',
+            'Accept',
+            'Authorization',
+            'Content-Length',
+            'User-Agent',
+            'Host'
+        );
+        $headers = apache_request_headers();
+        $returnheaders = array();
+
+        foreach ($headers as $key => $value) {
+            if (in_array($key, $capitalizearray)) {
+                $header = 'HTTP_' . strtoupper($key);
+                $header = str_replace('-', '_', $header);
+                $returnheaders[$header] = $value;
+            }
+        }
+
+        return $returnheaders;
+    }
+
+    /**
      * Extract the HTTP headers out of the request.
      *
      * @param array $headers Optional array of headers, to assist with testing.
      * @return array $headers HTTP headers.
      */
     private function get_headers($headers=null) {
-        if (!$headers) {
-            $headers = $_SERVER;
-        }
         $returnheaders = array();
-        foreach ($headers as $key => $value) {
-            if (substr($key, 0, 5) == 'HTTP_') {
-                $returnheaders[$key] = $value;
+
+        if (!$headers) {
+            if (function_exists('apache_request_headers')) {  // Apache websever.
+                $returnheaders = $this->get_apache_headers();
+            } else {  // Nginx webserver.
+                $headers = $_SERVER;
+                foreach ($headers as $key => $value) {
+                    if (substr($key, 0, 5) == 'HTTP_') {
+                        $returnheaders[$key] = $value;
+                    }
+                }
             }
         }
 
