@@ -110,7 +110,7 @@ class webservice_restful_server_testcase extends advanced_testcase {
         $headers = array();
         $this->expectOutputString('{"exception":"moodle_exception",'
                                 .'"errorcode":"noauthheader",'
-                                .'"message":"No Authorsiation header found in request sent to Moodle"}');
+                                .'"message":"No Authorization header found in request sent to Moodle"}');
 
         // We're testing a private method, so we need to setup reflector magic.
         $method = new ReflectionMethod('webservice_restful_server', 'get_wstoken');
@@ -144,7 +144,7 @@ class webservice_restful_server_testcase extends advanced_testcase {
         $getvars = array();
         $this->expectOutputString('{"exception":"moodle_exception",'
                                 .'"errorcode":"nowsfunction",'
-                                .'"message":"No webservice funciton found in URL sent to Moodle"}');
+                                .'"message":"No webservice function found in URL sent to Moodle"}');
 
         // We're testing a private method, so we need to setup reflector magic.
         $method = new ReflectionMethod('webservice_restful_server', 'get_wsfunction');
