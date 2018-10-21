@@ -93,14 +93,15 @@ class webservice_restful_server extends webservice_base_server {
 
         if (!$headers) {
             if (function_exists('apache_request_headers')) {  // Apache websever.
-                $returnheaders = $this->get_apache_headers();
+                $headers = $this->get_apache_headers();
             } else {  // Nginx webserver.
                 $headers = $_SERVER;
-                foreach ($headers as $key => $value) {
-                    if (substr($key, 0, 5) == 'HTTP_') {
-                        $returnheaders[$key] = $value;
-                    }
-                }
+            }
+        }
+
+        foreach ($headers as $key => $value) {
+            if (substr($key, 0, 5) == 'HTTP_') {
+                $returnheaders[$key] = $value;
             }
         }
 
