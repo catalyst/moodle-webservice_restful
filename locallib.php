@@ -230,7 +230,7 @@ class webservice_restful_server extends webservice_base_server {
      * This method parses the request sent to Moodle
      * and extracts and validates the supplied data.
      *
-     * @return void
+     * @return bool
      */
     protected function parse_request() {
 
@@ -261,8 +261,12 @@ class webservice_restful_server extends webservice_base_server {
         }
 
         // Get the webservice function parameters or return false.
-        if (!($this->parameters = $this->get_parameters())) {
-            return false;
+        if(empty($this->get_parameters())) {
+            $this->parameters = array();
+        } else {
+            if (!($this->parameters = $this->get_parameters())) {
+                return false;
+            }
         }
 
         return true;
