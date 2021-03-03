@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/catalyst/moodle-webservice_restful.svg?branch=master)](https://travis-ci.org/catalyst/moodle-webservice_restful)
+![Build Status](https://github.com/catalyst/moodle-webservice_restful/actions/workflows/master.yml/badge.svg?branch=master)
 
 # moodle-webservice_restful
 A REStful webservice plugin for Moodle LMS
@@ -26,11 +26,11 @@ This plugin aims to extend the maturity of Moodle's webservice interface to "Lev
 ## Supported Moodle Versions
 This plugin currently supports Moodle:
 
-* 3.1
-* 3.2
-* 3.3
-* 3.4
 * 3.5
+* 3.8
+* 3.9
+* 3.10
+* 3.11
 
 ## Moodle Plugin Installation
 The following sections outline how to install the Moodle plugin.
