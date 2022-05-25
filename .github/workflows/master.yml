@@ -44,9 +44,9 @@ jobs:
           - moodle-branch: master
             php: 7.2
           - moodle-branch: MOODLE_311_STABLE
-              php: 7.2
+            php: 7.2
           - moodle-branch: MOODLE_400_STABLE
-              php: 7.2
+            php: 7.2
         include:
           - moodle-branch: master
             php: 7.4
