@@ -37,22 +37,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - php: '7.1'
-            moodle-branch: 'MOODLE_35_STABLE'
-            database: 'mariadb'
-            node: '14.15'
-          - php: '7.2'
-            moodle-branch: 'MOODLE_35_STABLE'
-            database: 'pgsql'
-            node: '14.15'
-          - php: '7.3'
-            moodle-branch: 'MOODLE_38_STABLE'
-            database: 'mariadb'
-            node: '14.15'
-          - php: '7.3'
-            moodle-branch: 'MOODLE_38_STABLE'
-            database: 'pgsql'
-            node: '14.15'
           - php: '7.3'
             moodle-branch: 'MOODLE_39_STABLE'
             database: 'mariadb'
@@ -77,6 +61,14 @@ jobs:
             moodle-branch: 'MOODLE_311_STABLE'
             database: 'pgsql'
             node: '14.15'
+          - php: '7.4'
+            moodle-branch: 'MOODLE_400_STABLE'
+            database: 'pgsql'
+            node: '16.14'
+          - php: '7.4'
+            moodle-branch: 'MOODLE_400_STABLE'
+            database: 'pgsql'
+            node: '16.14'
 
     steps:
       - name: Check out repository code

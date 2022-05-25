@@ -26,11 +26,10 @@ This plugin aims to extend the maturity of Moodle's webservice interface to "Lev
 ## Supported Moodle Versions
 This plugin currently supports Moodle:
 
-* 3.5
-* 3.8
 * 3.9
 * 3.10
 * 3.11
+* 4.0
 
 ## Moodle Plugin Installation
 The following sections outline how to install the Moodle plugin.
