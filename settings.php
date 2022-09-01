@@ -16,21 +16,24 @@
 
 
 /**
- * Strings for component 'webservice_restful', language 'en'
+ * Version details
  *
  * @package    webservice_restful
- * @category   string
  * @copyright  Matt Porritt <mattp@catalyst-au.net>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-$string['pluginname'] = 'RESTful protocol';
-$string['restful:use'] = 'Use RESTful protocol';
+defined('MOODLE_INTERNAL') || die();
 
-$string['noauthheader'] = 'No Authorization header found in request sent to Moodle';
-$string['nowsfunction'] = 'No webservice function found in URL sent to Moodle';
-$string['noacceptheader'] = 'No Accept header found in request sent to Moodle';
-$string['notypeheader'] = 'No Content Type header found in request sent to Moodle';
-$string['privacy:metadata'] = 'The RESTful protocol plugin does not store any personal data.';
-$string['secondary_authorization_param_name'] = 'Secondary authorization param name';
-$string['secondary_authorization_param_name_desc'] = 'Secondary authorization param name in header, if webserver remove the original';
+if ($ADMIN->fulltree) {
+
+    $settings->add(
+        new admin_setting_configtext(
+            'webservice_restful/secondary_authorization_param_name',
+            new lang_string('secondary_authorization_param_name', 'webservice_restful'),
+            new lang_string('secondary_authorization_param_name_desc', 'webservice_restful'),
+            'Authorization',
+            PARAM_HOST
+        )
+    );
+}

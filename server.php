@@ -34,12 +34,23 @@ require_once("$CFG->dirroot/webservice/restful/locallib.php");
 
 if (!webservice_protocol_is_enabled('restful')) {
     header("HTTP/1.0 403 Forbidden");
-    debugging('The server died because the web services or the REST protocol are not enable',
-        DEBUG_DEVELOPER);
+    debugging(
+        'The server died because the web services or the REST protocol are not enable',
+        DEBUG_DEVELOPER
+    );
     die;
 }
 
-$server = new webservice_restful_server(WEBSERVICE_AUTHMETHOD_PERMANENT_TOKEN);
+$config = get_config('webservice_restful');
+$secondary_authorization_param_name = null;
+
+if (
+    isset($config->secondary_authorization_param_name) &&
+    $config->secondary_authorization_param_name != ''
+) {
+    $secondary_authorization_param_name = $config->secondary_authorization_param_name;
+}
+
+$server = new webservice_restful_server(WEBSERVICE_AUTHMETHOD_PERMANENT_TOKEN, $secondary_authorization_param_name);
 $server->run();
 die;
-

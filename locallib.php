@@ -34,7 +34,8 @@ require_once("$CFG->dirroot/webservice/lib.php");
  * @copyright  Matt Porritt <mattp@catalyst-au.net>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class webservice_restful_server extends webservice_base_server {
+class webservice_restful_server extends webservice_base_server
+{
 
     /** @var string return method ('xml' or 'json') */
     protected $responseformat;
@@ -42,16 +43,23 @@ class webservice_restful_server extends webservice_base_server {
     /** @var string request method ('xml', 'json', or 'urlencode') */
     protected $requestformat;
 
+    protected $secondary_authorization_token = '';
+
     /**
      * Contructor
      *
      * @param string $authmethod authentication method of the web service (WEBSERVICE_AUTHMETHOD_PERMANENT_TOKEN, ...)
+     * @param string $secondary_authorization_token secondary authorization field seach, if original was removed
      */
-    public function __construct($authmethod) {
+    public function __construct($authmethod, $secondary_authorization_token = null)
+    {
         parent::__construct($authmethod);
         $this->wsname = 'restful';
         $this->responseformat = 'json'; // Default to json.
         $this->requestformat = 'json'; // Default to json.
+
+        if (!is_null($secondary_authorization_token))
+            $this->secondary_authorization_token = strtolower($secondary_authorization_token);
     }
 
     /**
@@ -59,20 +67,22 @@ class webservice_restful_server extends webservice_base_server {
      *
      * @return array $returnheaders The headers from Apache.
      */
-    private function get_apache_headers() {
+    private function get_apache_headers()
+    {
         $capitalizearray = array(
-            'Content-Type',
-            'Accept',
-            'Authorization',
-            'Content-Length',
-            'User-Agent',
-            'Host'
+            'content-type',
+            'accept',
+            'authorization',
+            'content-length',
+            'user-agent',
+            'host'
         );
+        array_push($capitalizearray, $this->secondary_authorization_token);
         $headers = apache_request_headers();
         $returnheaders = array();
 
         foreach ($headers as $key => $value) {
-            if (in_array($key, $capitalizearray)) {
+            if (in_array(strtolower($key), $capitalizearray)) {
                 $header = 'HTTP_' . strtoupper($key);
                 $header = str_replace('-', '_', $header);
                 $returnheaders[$header] = $value;
@@ -88,7 +98,8 @@ class webservice_restful_server extends webservice_base_server {
      * @param array $headers Optional array of headers, to assist with testing.
      * @return array $headers HTTP headers.
      */
-    private function get_headers($headers=null) {
+    private function get_headers($headers = null)
+    {
         $returnheaders = array();
 
         if (!$headers) {
@@ -115,11 +126,18 @@ class webservice_restful_server extends webservice_base_server {
      * @param array $headers The extracted HTTP headers.
      * @return string $wstoken The extracted webservice authorization token.
      */
-    private function get_wstoken($headers) {
+    private function get_wstoken($headers)
+    {
         $wstoken = '';
 
         if (isset($headers['HTTP_AUTHORIZATION'])) {
             $wstoken = $headers['HTTP_AUTHORIZATION'];
+        } else if (
+            !is_null($this->secondary_authorization_token) &&
+            $this->secondary_authorization_token != '' &&
+            isset($headers['HTTP_' . strtoupper($this->secondary_authorization_token)])
+        ) {
+            $wstoken = $headers['HTTP_' . strtoupper($this->secondary_authorization_token)];
         } else {
             // Raise an error if auth header not supplied.
             $ex = new \moodle_exception('noauthheader', 'webservice_restful', '');
@@ -136,7 +154,8 @@ class webservice_restful_server extends webservice_base_server {
      * @param array $getvars Optional get variables, used for testing.
      * @return string $wsfunction The webservice function to call.
      */
-    private function get_wsfunction($getvars=null) {
+    private function get_wsfunction($getvars = null)
+    {
         $wsfunction = '';
 
         // Testing has found that there is varying methods across webservers,
@@ -168,7 +187,8 @@ class webservice_restful_server extends webservice_base_server {
      * @param array $headers The HTTP headers.
      * @return string $responseformat The format of the client response.
      */
-    private function get_responseformat($headers) {
+    private function get_responseformat($headers)
+    {
         $responseformat = '';
 
         if (isset($headers['HTTP_ACCEPT'])) {
@@ -189,7 +209,8 @@ class webservice_restful_server extends webservice_base_server {
      * @param array $headers The HTTP headers.
      * @return string $requestformat The format of the client request.
      */
-    private function get_requestformat($headers) {
+    private function get_requestformat($headers)
+    {
         $requestformat = '';
 
         if (isset($headers['HTTP_CONTENT_TYPE'])) {
@@ -209,7 +230,8 @@ class webservice_restful_server extends webservice_base_server {
      * @param array $content the content to parse.
      * @return mixed $input The parameters to use with the webservice.
      */
-    private function get_parameters($content='') {
+    private function get_parameters($content = '')
+    {
         if (!$content) {
             $content = file_get_contents('php://input');
         }
@@ -232,7 +254,8 @@ class webservice_restful_server extends webservice_base_server {
      *
      * @return bool
      */
-    protected function parse_request() {
+    protected function parse_request()
+    {
 
         // Retrieve and clean the POST/GET parameters from the parameters specific to the server.
         parent::set_web_service_call_settings();
@@ -275,7 +298,8 @@ class webservice_restful_server extends webservice_base_server {
      *
      * @uses die
      */
-    public function run() {
+    public function run()
+    {
         global $CFG, $SESSION;
 
         // We will probably need a lot of memory in some functions.
@@ -310,12 +334,12 @@ class webservice_restful_server extends webservice_base_server {
             )
         );
         $event = \core\event\webservice_function_called::create($params);
-        $event->set_legacy_logdata(array(SITEID, 'webservice', $this->functionname, '' , getremoteaddr() , 0, $this->userid));
+        $event->set_legacy_logdata(array(SITEID, 'webservice', $this->functionname, '', getremoteaddr(), 0, $this->userid));
         $event->trigger();
 
         // Do additional setup stuff.
         $settings = external_settings::get_instance();
-        if (method_exists($settings , 'get_lang')) {
+        if (method_exists($settings, 'get_lang')) {
 
             $sessionlang = $settings->get_lang();
             if (!empty($sessionlang)) {
@@ -349,7 +373,8 @@ class webservice_restful_server extends webservice_base_server {
      *
      * @return void
      */
-    protected function send_response() {
+    protected function send_response()
+    {
 
         // Check that the returned values are valid.
         try {
@@ -369,10 +394,10 @@ class webservice_restful_server extends webservice_base_server {
             if ($this->responseformat == 'json') {
                 $response = json_encode($validatedvalues);
             } else {
-                $response = '<?xml version="1.0" encoding="UTF-8" ?>'."\n";
-                $response .= '<RESPONSE>'."\n";
+                $response = '<?xml version="1.0" encoding="UTF-8" ?>' . "\n";
+                $response .= '<RESPONSE>' . "\n";
                 $response .= self::xmlize_result($validatedvalues, $this->function->returns_desc);
-                $response .= '</RESPONSE>'."\n";
+                $response .= '</RESPONSE>' . "\n";
             }
         }
 
@@ -389,7 +414,8 @@ class webservice_restful_server extends webservice_base_server {
      * @param exception $ex the exception that we are sending.
      * @param integer $code The HTTP response code to return.
      */
-    protected function send_error($ex=null, $code=400) {
+    protected function send_error($ex = null, $code = 400)
+    {
         // Sniffing for unit tests running alwasys feels like a hack.
         // We need to do this otherwise it will conflict with the headers
         // sent by PHPUNIT.
@@ -405,7 +431,8 @@ class webservice_restful_server extends webservice_base_server {
      * @param exception $ex the exception we are converting in the server rest format
      * @return string the error in the requested REST format
      */
-    protected function generate_error($ex) {
+    protected function generate_error($ex)
+    {
         if ($this->responseformat != 'xml') {
             $errorobject = new stdClass;
             $errorobject->exception = get_class($ex);
@@ -416,15 +443,15 @@ class webservice_restful_server extends webservice_base_server {
             }
             $error = json_encode($errorobject);
         } else {
-            $error = '<?xml version="1.0" encoding="UTF-8" ?>'."\n";
-            $error .= '<EXCEPTION class="'.get_class($ex).'">'."\n";
+            $error = '<?xml version="1.0" encoding="UTF-8" ?>' . "\n";
+            $error .= '<EXCEPTION class="' . get_class($ex) . '">' . "\n";
             $error .= '<ERRORCODE>' . htmlspecialchars($ex->errorcode, ENT_COMPAT, 'UTF-8')
-                    . '</ERRORCODE>' . "\n";
-            $error .= '<MESSAGE>'.htmlspecialchars($ex->getMessage(), ENT_COMPAT, 'UTF-8').'</MESSAGE>'."\n";
+                . '</ERRORCODE>' . "\n";
+            $error .= '<MESSAGE>' . htmlspecialchars($ex->getMessage(), ENT_COMPAT, 'UTF-8') . '</MESSAGE>' . "\n";
             if (debugging() and isset($ex->debuginfo)) {
-                $error .= '<DEBUGINFO>'.htmlspecialchars($ex->debuginfo, ENT_COMPAT, 'UTF-8').'</DEBUGINFO>'."\n";
+                $error .= '<DEBUGINFO>' . htmlspecialchars($ex->debuginfo, ENT_COMPAT, 'UTF-8') . '</DEBUGINFO>' . "\n";
             }
-            $error .= '</EXCEPTION>'."\n";
+            $error .= '</EXCEPTION>' . "\n";
         }
         return $error;
     }
@@ -434,16 +461,17 @@ class webservice_restful_server extends webservice_base_server {
      *
      * @param integer $code The HTTP response code to return.
      */
-    protected function send_headers($code=200) {
+    protected function send_headers($code = 200)
+    {
         if ($this->responseformat == 'json') {
             header('Content-type: application/json');
         } else {
             header('Content-Type: application/xml; charset=utf-8');
             header('Content-Disposition: inline; filename="response.xml"');
         }
-        header('X-PHP-Response-Code: '.$code, true, $code);
+        header('X-PHP-Response-Code: ' . $code, true, $code);
         header('Cache-Control: private, must-revalidate, pre-check=0, post-check=0, max-age=0');
-        header('Expires: '. gmdate('D, d M Y H:i:s', 0) .' GMT');
+        header('Expires: ' . gmdate('D, d M Y H:i:s', 0) . ' GMT');
         header('Pragma: no-cache');
         header('Accept-Ranges: none');
         // Allow cross-origin requests only for Web Services.
@@ -458,38 +486,36 @@ class webservice_restful_server extends webservice_base_server {
      * @param external_description $desc
      * @return string
      */
-    protected static function xmlize_result($returns, $desc) {
+    protected static function xmlize_result($returns, $desc)
+    {
         if ($desc === null) {
             return '';
-
         } else if ($desc instanceof external_value) {
             if (is_bool($returns)) {
                 // We want 1/0 instead of true/false here.
                 $returns = (int)$returns;
             }
             if (is_null($returns)) {
-                return '<VALUE null="null"/>'."\n";
+                return '<VALUE null="null"/>' . "\n";
             } else {
-                return '<VALUE>'.htmlspecialchars($returns, ENT_COMPAT, 'UTF-8').'</VALUE>'."\n";
+                return '<VALUE>' . htmlspecialchars($returns, ENT_COMPAT, 'UTF-8') . '</VALUE>' . "\n";
             }
-
         } else if ($desc instanceof external_multiple_structure) {
-            $mult = '<MULTIPLE>'."\n";
+            $mult = '<MULTIPLE>' . "\n";
             if (!empty($returns)) {
                 foreach ($returns as $val) {
                     $mult .= self::xmlize_result($val, $desc->content);
                 }
             }
-            $mult .= '</MULTIPLE>'."\n";
+            $mult .= '</MULTIPLE>' . "\n";
             return $mult;
-
         } else if ($desc instanceof external_single_structure) {
-            $single = '<SINGLE>'."\n";
+            $single = '<SINGLE>' . "\n";
             foreach ($desc->keys as $key => $subdesc) {
                 $value = isset($returns[$key]) ? $returns[$key] : null;
-                $single .= '<KEY name="'.$key.'">'.self::xmlize_result($value, $subdesc).'</KEY>'."\n";
+                $single .= '<KEY name="' . $key . '">' . self::xmlize_result($value, $subdesc) . '</KEY>' . "\n";
             }
-            $single .= '</SINGLE>'."\n";
+            $single .= '</SINGLE>' . "\n";
             return $single;
         }
     }
