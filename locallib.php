@@ -67,7 +67,7 @@ class webservice_restful_server extends webservice_base_server {
         global $CFG;
         $config = $CFG->restful_publicapis;
         if ($config) {
-            return explode(',', $config->value);
+            return explode(',', $config);
         } else {
             return array();
         }
