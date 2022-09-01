@@ -32,3 +32,11 @@ $string['nowsfunction'] = 'No webservice function found in URL sent to Moodle';
 $string['noacceptheader'] = 'No Accept header found in request sent to Moodle';
 $string['notypeheader'] = 'No Content Type header found in request sent to Moodle';
 $string['privacy:metadata'] = 'The RESTful protocol plugin does not store any personal data.';
+
+
+$string['header'] = 'Public external api settings';
+$string['token'] = 'Token';
+$string['tokendescription'] = 'The token used to override the authentication for public external api calls';
+$string['apis'] = 'Token';
+$string['apisdescription'] = 'The token used to override the authentication for public external api calls';
+
