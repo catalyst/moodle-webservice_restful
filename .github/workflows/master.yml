@@ -38,14 +38,12 @@ jobs:
       fail-fast: false
       matrix:
         database: ['pgsql']
-        moodle-branch: ['MOODLE_39_STABLE', 'MOODLE_310_STABLE', 'MOODLE_311_STABLE', 'MOODLE_400_STABLE', 'master']
+        moodle-branch: ['MOODLE_39_STABLE', 'MOODLE_310_STABLE', 'MOODLE_311_STABLE', 'master']
         php: ['7.2', '7.4']
         exclude:
           - moodle-branch: master
             php: 7.2
           - moodle-branch: MOODLE_311_STABLE
-            php: 7.2
-          - moodle-branch: MOODLE_400_STABLE
             php: 7.2
         include:
           - moodle-branch: master

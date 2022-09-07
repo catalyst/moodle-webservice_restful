@@ -42,6 +42,8 @@ class webservice_restful_server extends webservice_base_server {
     /** @var string request method ('xml', 'json', or 'urlencode') */
     protected $requestformat;
 
+
+
     /**
      * Contructor
      *
@@ -52,8 +54,40 @@ class webservice_restful_server extends webservice_base_server {
         $this->wsname = 'restful';
         $this->responseformat = 'json'; // Default to json.
         $this->requestformat = 'json'; // Default to json.
+        $this->is_public = false;
+        $this->public_apis = $this->get_public_apis();
+        $this->public_token= $this->get_public_token();
     }
+    /**
+     * Get public functions names.
+     *
+     * @return array $publicapis The public apis from settings.
+     */
+    private function get_public_apis(){
+        global $CFG;
+        $config = $CFG->restful_publicapis;
+        if ($config) {
+            return explode(',', $config);
+        } else {
+            
+            return array();
+        }
+    }
+    /**
+     * Get public token to be used to override public apis.
+     *
+     * @return array $token The public token from settings.
+     */
+    private function get_public_token(){
+        global $CFG;
+        $config = $CFG->restful_token;
+        if ($config) {
 
+            return $config;
+        } else {
+            return null;
+        } 
+    }
     /**
      * Get headers from Apache websever.
      *
@@ -118,6 +152,15 @@ class webservice_restful_server extends webservice_base_server {
     private function get_wstoken($headers) {
         $wstoken = '';
 
+        if ($this->is_public){
+            if ($this->public_token){
+                return $this->public_token;
+            }
+            else{
+                $ex = new \moodle_exception('notoken', 'webservice_restful', '');
+                $this->send_error($ex, 401);
+            }
+        }
         if (isset($headers['HTTP_AUTHORIZATION'])) {
             $wstoken = $headers['HTTP_AUTHORIZATION'];
         } else {
@@ -158,7 +201,8 @@ class webservice_restful_server extends webservice_base_server {
             $this->send_error($ex, 400);
         }
 
-        return $wsfunction;
+        
+        return trim($wsfunction);
     }
 
     /**
@@ -237,6 +281,18 @@ class webservice_restful_server extends webservice_base_server {
         // Retrieve and clean the POST/GET parameters from the parameters specific to the server.
         parent::set_web_service_call_settings();
 
+        // Get the webservice function or return false.
+        if (!($this->functionname = $this->get_wsfunction())) {
+            return false;
+        }
+        if (in_array($this->functionname, $this->public_apis)) {
+            $this->is_public = true;
+        }
+        //$this->send_error(new Exception("the function is ".$this->functionname), 401);
+        //$this->send_error(new Exception("the public apis is ".var_export($this->public_apis,true)), 401);
+        //$this->send_error(new Exception("the in array is  ".var_export(in_array($this->functionname, $this->public_apis),true)), 401);
+        //$this->send_error(new Exception("the is_public apis is ".var_export($this->is_public,true)), 401);
+
         // Get the HTTP Headers.
         $headers = $this->get_headers();
 
@@ -255,10 +311,7 @@ class webservice_restful_server extends webservice_base_server {
             return false;
         }
 
-        // Get the webservice function or return false.
-        if (!($this->functionname = $this->get_wsfunction())) {
-            return false;
-        }
+        
 
         // Get the webservice function parameters or return false.
         if (empty($this->get_parameters())) {
