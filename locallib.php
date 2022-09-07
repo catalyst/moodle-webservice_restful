@@ -54,7 +54,7 @@ class webservice_restful_server extends webservice_base_server {
         $this->wsname = 'restful';
         $this->responseformat = 'json'; // Default to json.
         $this->requestformat = 'json'; // Default to json.
-        $this->public = false;
+        $this->is_public = false;
         $this->public_apis = $this->get_public_apis();
         $this->public_token= $this->get_public_token();
     }
@@ -69,6 +69,7 @@ class webservice_restful_server extends webservice_base_server {
         if ($config) {
             return explode(',', $config);
         } else {
+            
             return array();
         }
     }
@@ -81,6 +82,7 @@ class webservice_restful_server extends webservice_base_server {
         global $CFG;
         $config = $CFG->restful_token;
         if ($config) {
+
             return $config;
         } else {
             return null;
@@ -150,7 +152,7 @@ class webservice_restful_server extends webservice_base_server {
     private function get_wstoken($headers) {
         $wstoken = '';
 
-        if ($this->public){
+        if ($this->is_public){
             if ($this->public_token){
                 return $this->public_token;
             }
@@ -198,11 +200,9 @@ class webservice_restful_server extends webservice_base_server {
             $ex = new \moodle_exception('nowsfunction', 'webservice_restful', '');
             $this->send_error($ex, 400);
         }
- 
-        if (in_array($wsfunction, $this->public_apis)) {
-            $this->public = true;
-        }
-        return $wsfunction;
+
+        
+        return trim($wsfunction);
     }
 
     /**
@@ -285,6 +285,13 @@ class webservice_restful_server extends webservice_base_server {
         if (!($this->functionname = $this->get_wsfunction())) {
             return false;
         }
+        if (in_array($this->functionname, $this->public_apis)) {
+            $this->is_public = true;
+        }
+        //$this->send_error(new Exception("the function is ".$this->functionname), 401);
+        //$this->send_error(new Exception("the public apis is ".var_export($this->public_apis,true)), 401);
+        //$this->send_error(new Exception("the in array is  ".var_export(in_array($this->functionname, $this->public_apis),true)), 401);
+        //$this->send_error(new Exception("the is_public apis is ".var_export($this->is_public,true)), 401);
 
         // Get the HTTP Headers.
         $headers = $this->get_headers();
