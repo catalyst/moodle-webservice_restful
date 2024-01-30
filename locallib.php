@@ -23,6 +23,9 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use core_external\external_api;
+use core_external\external_settings;
+
 defined('MOODLE_INTERNAL') || die();
 
 require_once("$CFG->dirroot/webservice/lib.php");
@@ -310,7 +313,6 @@ class webservice_restful_server extends webservice_base_server {
             )
         );
         $event = \core\event\webservice_function_called::create($params);
-        $event->set_legacy_logdata(array(SITEID, 'webservice', $this->functionname, '' , getremoteaddr() , 0, $this->userid));
         $event->trigger();
 
         // Do additional setup stuff.
@@ -409,7 +411,9 @@ class webservice_restful_server extends webservice_base_server {
         if ($this->responseformat != 'xml') {
             $errorobject = new stdClass;
             $errorobject->exception = get_class($ex);
-            $errorobject->errorcode = $ex->errorcode;
+            if (isset($ex->errorcode)) {
+                $errorobject->errorcode = $ex->errorcode;
+            }
             $errorobject->message = $ex->getMessage();
             if (debugging() and isset($ex->debuginfo)) {
                 $errorobject->debuginfo = $ex->debuginfo;
