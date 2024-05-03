@@ -24,12 +24,11 @@ Moodle is currently Level 0 or in the "swamp of POX". As described be Fowler, Mo
 This plugin aims to extend the maturity of Moodle's webservice interface to "Level 1: Resources" by making each webservice function available as a discrete URL.
 
 ## Supported Moodle Versions
-This plugin currently supports Moodle:
 
-* 3.9
-* 3.10
-* 3.11
-* 4.0
+| Moodle version   | Branch            |
+|------------------|-------------------|
+| Moodle 4.2 - 4.4 | MOODLE_402_STABLE |
+| Moodle 3.9 - 4.1 | master            |
 
 ## Moodle Plugin Installation
 The following sections outline how to install the Moodle plugin.
