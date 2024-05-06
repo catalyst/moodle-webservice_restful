@@ -25,8 +25,8 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2024050200;            // The current plugin version (Date: YYYYMMDDXX).
-$plugin->release   = 2024050200;            // Same as version.
+$plugin->version   = 2024050600;            // The current plugin version (Date: YYYYMMDDXX).
+$plugin->release   = 2024050600;            // Same as version.
 $plugin->component = 'webservice_restful';  // Full name of the plugin (used for diagnostics).
 $plugin->requires = 2023042400;             // Requires this Moodle version.
 $plugin->maturity = MATURITY_STABLE;
