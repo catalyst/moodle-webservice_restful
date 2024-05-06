@@ -63,16 +63,16 @@ class webservice_restful_server extends webservice_base_server {
      * @return array $returnheaders The headers from Apache.
      */
     private function get_apache_headers() {
-        $capitalizearray = array(
+        $capitalizearray = [
             'Content-Type',
             'Accept',
             'Authorization',
             'Content-Length',
             'User-Agent',
-            'Host'
-        );
+            'Host',
+        ];
         $headers = apache_request_headers();
-        $returnheaders = array();
+        $returnheaders = [];
 
         foreach ($headers as $key => $value) {
             if (in_array($key, $capitalizearray)) {
@@ -92,7 +92,7 @@ class webservice_restful_server extends webservice_base_server {
      * @return array $headers HTTP headers.
      */
     private function get_headers($headers=null) {
-        $returnheaders = array();
+        $returnheaders = [];
 
         if (!$headers) {
             if (function_exists('apache_request_headers')) {  // Apache websever.
@@ -265,7 +265,7 @@ class webservice_restful_server extends webservice_base_server {
 
         // Get the webservice function parameters or return false.
         if (empty($this->get_parameters())) {
-            $this->parameters = array();
+            $this->parameters = [];
         } else if (!($this->parameters = $this->get_parameters())) {
             return false;
         }
@@ -292,7 +292,7 @@ class webservice_restful_server extends webservice_base_server {
         // Set up exception handler first, we want to sent them back in correct format that
         // the other system understands.
         // We do not need to call the original default handler because this ws handler does everything.
-        set_exception_handler(array($this, 'exception_handler'));
+        set_exception_handler([$this, 'exception_handler']);
 
         // Init all properties from the request data.
         if (!$this->parse_request()) {
@@ -307,11 +307,11 @@ class webservice_restful_server extends webservice_base_server {
         $this->load_function_info();
 
         // Log the web service request.
-        $params = array(
-            'other' => array(
-                'function' => $this->functionname
-            )
-        );
+        $params = [
+            'other' => [
+                'function' => $this->functionname,
+            ],
+        ];
         $event = \core\event\webservice_function_called::create($params);
         $event->trigger();
 
@@ -415,7 +415,7 @@ class webservice_restful_server extends webservice_base_server {
                 $errorobject->errorcode = $ex->errorcode;
             }
             $errorobject->message = $ex->getMessage();
-            if (debugging() and isset($ex->debuginfo)) {
+            if (debugging() && isset($ex->debuginfo)) {
                 $errorobject->debuginfo = $ex->debuginfo;
             }
             $error = json_encode($errorobject);
@@ -425,7 +425,7 @@ class webservice_restful_server extends webservice_base_server {
             $error .= '<ERRORCODE>' . htmlspecialchars($ex->errorcode, ENT_COMPAT, 'UTF-8')
                     . '</ERRORCODE>' . "\n";
             $error .= '<MESSAGE>'.htmlspecialchars($ex->getMessage(), ENT_COMPAT, 'UTF-8').'</MESSAGE>'."\n";
-            if (debugging() and isset($ex->debuginfo)) {
+            if (debugging() && isset($ex->debuginfo)) {
                 $error .= '<DEBUGINFO>'.htmlspecialchars($ex->debuginfo, ENT_COMPAT, 'UTF-8').'</DEBUGINFO>'."\n";
             }
             $error .= '</EXCEPTION>'."\n";

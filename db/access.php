@@ -26,13 +26,10 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$capabilities = array(
-
-    'webservice/restful:use' => array(
+$capabilities = [
+    'webservice/restful:use' => [
         'captype' => 'read', // In fact this may be considered read and write at the same time.
         'contextlevel' => CONTEXT_COURSE, // The context level should be probably CONTEXT_MODULE.
-        'archetypes' => array(
-        ),
-    ),
-
-);
+        'archetypes' => [],
+    ],
+];
