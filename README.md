@@ -1,4 +1,6 @@
-![Build Status](https://github.com/catalyst/moodle-webservice_restful/actions/workflows/master.yml/badge.svg?branch=master)
+<a href="https://github.com/catalyst/moodle-webservice_restful/actions/workflows/ci.yml?query=branch%3AMOODLE_402_STABLE">
+<img src="https://github.com/catalyst/moodle-webservice_restful/workflows/ci/badge.svg?branch=MOODLE_402_STABLE">
+</a>
 
 # moodle-webservice_restful
 A REStful webservice plugin for Moodle LMS
