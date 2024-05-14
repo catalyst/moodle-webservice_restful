@@ -1,6 +1,4 @@
-<a href="https://github.com/catalyst/moodle-webservice_restful/actions/workflows/ci.yml?query=branch%3AMOODLE_402_STABLE">
-<img src="https://github.com/catalyst/moodle-webservice_restful/workflows/ci/badge.svg?branch=MOODLE_402_STABLE">
-</a>
+[![ci](https://github.com/catalyst/moodle-webservice_restful/actions/workflows/ci.yml/badge.svg?branch=MOODLE_402_STABLE)](https://github.com/catalyst/moodle-webservice_restful/actions/workflows/ci.yml)
 
 # moodle-webservice_restful
 A REStful webservice plugin for Moodle LMS
