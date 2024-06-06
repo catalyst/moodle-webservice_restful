@@ -39,6 +39,37 @@ $openapi->components = (object) array(
             'in' => 'header',
             'name' => 'Authorization'
         )
+    ),
+    'responses' => (object) array(
+        '4XXError' => (object) array(
+            'description' => '4XX series status codes indicate a problem with the request. The request is missing data, malformed or unauthorised.',
+            'content' =>  array(
+                'application/json' => (object) array(
+                    'schema' => (object) array(
+                        'type' => 'object',
+                        'properties' => (object) array(
+                            'exception' => (object) array(
+                                'type' => 'string',
+                                'description' => 'The exception message'
+                            ),
+                            'errorcode' => (object) array(
+                                'type' => 'string',
+                                'description' => 'The error code'
+                            ),
+                            'message' => (object) array(
+                                'type' => 'string',
+                                'description' => 'The error message'
+                            ),
+                            'debuginfo' => (object) array(
+                                'type' => 'string',
+                                'description' => 'The debug information'
+                            )
+
+                        )
+                    )
+                )
+            )
+        )
     )
 ); 
 $openapi->security = array(
@@ -80,9 +111,7 @@ function moodle_webservice_function_to_openapi_path($function) {
 function moodle_webservice_returns_desc_to_openapi_responses($response) {
     $responses = new stdClass();
     
-    $responses->default = new stdClass();
-    $responses->default->description = "this plugin will return 4XX series status codes if calls are malformed, missing data or unauthorised.";
-
+    $responses->default = (object) array('$ref' => "#/components/responses/4XXError");
     $responses->{200} = new stdClass();
     $responses->{200}->description = "this plugin will return 200 even if the call fails.";
     if (($schema = moodle_external_description_to_openapi_schema($response)) !== null) {
