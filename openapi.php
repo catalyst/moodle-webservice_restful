@@ -14,7 +14,7 @@ if (!webservice_protocol_is_enabled('restful')) {
 }
 
 // echo yaml header
-header('Content-Type: text/yaml');
+header('Content-Type: application/json');
 
 
 
