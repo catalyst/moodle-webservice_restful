@@ -1,5 +1,4 @@
 <?php
-
 define('NO_DEBUG_DISPLAY', true);
 define('WS_SERVER', true);
 
@@ -16,12 +15,9 @@ if (!webservice_protocol_is_enabled('restful')) {
 // echo yaml header
 header('Content-Type: application/json');
 
-
-
-
 $openapi = new stdClass();
-$openapi->openapi = "3.0.0";
-$openapi->servers = array( (object) array('url' => 'http:/moodle.localhost/webservice/restful/server.php'));
+$openapi->openapi = "3.1.0";
+$openapi->servers = array( (object) array('url' => (string)new moodle_url('/webservice/restful/server.php')));
 $openapi->info = (object) array(
 	'title' => 'Moodle Web Services',
 	'description' => 'Moodle Web Services API',
@@ -71,7 +67,8 @@ $openapi->components = (object) array(
             )
         )
     )
-); 
+);
+
 $openapi->security = array(
     array('MoodleAuthToken' => array())
 );
@@ -92,6 +89,9 @@ function moodle_webservice_function_to_openapi_path($function) {
     //$path->$method->tags = array($info->classname);
     $path->$method->summary = "$info->name";
     $path->$method->description = $info->description;
+    $path->$method->tags = array(
+        $info->component
+    );
     if ($info->deprecated) {
         $path->$method->deprecated = true;
     }
@@ -102,10 +102,7 @@ function moodle_webservice_function_to_openapi_path($function) {
         $path->$method->requestBody->content->{'application/json'} = new stdClass();
         $path->$method->requestBody->content->{'application/json'}->schema = $schema;    
     }
-        
     return $path;
-
-
 }
 
 function moodle_webservice_returns_desc_to_openapi_responses($response) {
