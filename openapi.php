@@ -16,7 +16,7 @@ if (!webservice_protocol_is_enabled('restful')) {
 header('Content-Type: application/json');
 
 $openapi = new stdClass();
-$openapi->openapi = "3.1.0";
+$openapi->openapi = "3.0.1";
 $openapi->servers = array( (object) array('url' => (string)new moodle_url('/webservice/restful/server.php')));
 $openapi->info = (object) array(
 	'title' => 'Moodle Web Services',
@@ -92,7 +92,7 @@ function moodle_webservice_function_to_openapi_path($function) {
     $path->$method->tags = array(
         $info->component
     );
-    if ($info->deprecated) {
+    if (isset($info->deprecated) && ($info->deprecated === true)) {
         $path->$method->deprecated = true;
     }
     $path->$method->responses = moodle_webservice_returns_desc_to_openapi_responses($info->returns_desc);
@@ -120,7 +120,7 @@ function moodle_webservice_returns_desc_to_openapi_responses($response) {
 }
 
 function moodle_external_description_to_openapi_schema(?external_description $value) {
-    if ($value === null) {
+    if (is_null($value)) {
         return null;
     }
     $schema = null;
@@ -134,11 +134,11 @@ function moodle_external_description_to_openapi_schema(?external_description $va
         return null;
     }
 
-    if ($schema === null) {
+    if (is_null($schema)) {
         return null;
     }
 
-    if ($value->allownull) {
+    if (isset($value->allownull) && ($value->allownull === true)) {
         $schema->nullable = true;
     }
 
@@ -154,11 +154,11 @@ function moodle_external_single_structure_to_openapi_schema(external_single_stru
 
     foreach ($value->keys as $key => $keyvalue) {
         $item_schema = moodle_external_description_to_openapi_schema($keyvalue);
-        if ($item_schema === null) {
+        if (is_null($item_schema)) {
             continue;
         }
         $schema->properties[$key] = $item_schema;
-        if ($keyvalue->required) {
+        if (isset($keyvalue->required)) {
             $schema->required[] = "$key";
         }
     }
@@ -178,7 +178,7 @@ function moodle_external_multiple_structure_to_openapi_schema(external_multiple_
     $schema->type = "array";
     $schema->items = new stdClass();
     $schema->items = moodle_external_description_to_openapi_schema($value->content);
-    if ($schema->items === null) {
+    if (is_null($schema->items)) {
         return null;
     }
     return $schema;
@@ -187,7 +187,7 @@ function moodle_external_multiple_structure_to_openapi_schema(external_multiple_
 function moodle_external_value_to_openapi_schema(external_value $value) {
     $schema = new stdClass();
     $schema->description = $value->desc;
-    if ($value->default !== null) {
+    if (isset($value->default)) {
         $schema->default = $value->default;
     }
     switch ($value->type) {
