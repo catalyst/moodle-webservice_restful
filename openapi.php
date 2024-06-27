@@ -14,6 +14,13 @@ if (!webservice_protocol_is_enabled('restful')) {
 
 // echo yaml header
 header('Content-Type: application/json');
+header('Cache-Control: private, must-revalidate, pre-check=0, post-check=0, max-age=0');
+header('Expires: '. gmdate('D, d M Y H:i:s', 0) .' GMT');
+header('Pragma: no-cache');
+header('Accept-Ranges: none');
+// Allow cross-origin requests only for Web Services.
+// This allow to receive requests done by Web Workers or webapps in different domains.
+header('Access-Control-Allow-Origin: *');
 
 $openapi = new stdClass();
 $openapi->openapi = "3.0.1";
@@ -76,18 +83,18 @@ $openapi->security = array(
 $openapi->paths = (object) array();
 $functions = $DB->get_records('external_functions', [], 'name');
 foreach ($functions as $function) {
-    $openapi->paths->{'/'.$function->name} = moodle_webservice_function_to_openapi_path($function->name);
+    $openapi->paths->{'/'.$function->name} = moodle_webservice_function_to_openapi_path($function->name, $openapi);
 }
 
 
-function moodle_webservice_function_to_openapi_path($function) {
+function moodle_webservice_function_to_openapi_path($function, $openapi) {
     $info = external_api::external_function_info($function);
 
     $path = new stdClass();
     $method = 'post';
     $path->$method = new stdClass();
-    //$path->$method->tags = array($info->classname);
     $path->$method->summary = "$info->name";
+    $path->$method->operationId = $info->name;
     $path->$method->description = $info->description;
     $path->$method->tags = array(
         $info->component
@@ -95,26 +102,29 @@ function moodle_webservice_function_to_openapi_path($function) {
     if (isset($info->deprecated) && ($info->deprecated === true)) {
         $path->$method->deprecated = true;
     }
-    $path->$method->responses = moodle_webservice_returns_desc_to_openapi_responses($info->returns_desc);
+    $path->$method->responses = moodle_webservice_returns_desc_to_openapi_responses($info->returns_desc, $info->name."_response", $openapi);
     if (($schema = moodle_external_description_to_openapi_schema($info->parameters_desc)) !== null) {
+        $name = $info->name.'_request';
+        $openapi->components->schemas->$name = $schema;
         $path->$method->requestBody = new stdClass();
         $path->$method->requestBody->content = new stdClass();
         $path->$method->requestBody->content->{'application/json'} = new stdClass();
-        $path->$method->requestBody->content->{'application/json'}->schema = $schema;    
+        $path->$method->requestBody->content->{'application/json'}->schema = (object) array('$ref' => "#/components/schemas/$name");
     }
     return $path;
 }
 
-function moodle_webservice_returns_desc_to_openapi_responses($response) {
+function moodle_webservice_returns_desc_to_openapi_responses($response, $name, $openapi) {
     $responses = new stdClass();
     
     $responses->default = (object) array('$ref' => "#/components/responses/4XXError");
     $responses->{200} = new stdClass();
     $responses->{200}->description = "this plugin will return 200 even if the call fails.";
     if (($schema = moodle_external_description_to_openapi_schema($response)) !== null) {
+        $openapi->components->schemas->$name = $schema;
         $responses->{200}->content = new stdClass();
         $responses->{200}->content->{'application/json'} = new stdClass();
-        $responses->{200}->content->{'application/json'}->schema = $schema;
+        $responses->{200}->content->{'application/json'}->schema = (object) array('$ref' => "#/components/schemas/$name");
     }
     return $responses;
 }
@@ -209,8 +219,6 @@ function moodle_external_value_to_openapi_schema(external_value $value) {
     }
     return $schema;
 }
-
-
 
 echo json_encode($openapi, JSON_PRETTY_PRINT);
 
