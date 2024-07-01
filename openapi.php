@@ -23,7 +23,7 @@ header('Accept-Ranges: none');
 header('Access-Control-Allow-Origin: *');
 
 $openapi = new stdClass();
-$openapi->openapi = "3.0.1";
+$openapi->openapi = "3.0.0";
 $openapi->servers = array( (object) array('url' => (string)new moodle_url('/webservice/restful/server.php')));
 $openapi->info = (object) array(
 	'title' => 'Moodle Web Services',
@@ -32,6 +32,10 @@ $openapi->info = (object) array(
 	'contact' => (object) array(
 		"name"=> "Epitech DDOS",
 		"url" => "https://moodle.org/support"
+    ),
+    'license' => (object) array(
+        'name' => 'GNU General Public License v3.0',
+        'url' => 'https://www.gnu.org/licenses/gpl-3.0.html'
     )
 );
 $openapi->components = (object) array(
@@ -44,7 +48,7 @@ $openapi->components = (object) array(
         )
     ),
     'responses' => (object) array(
-        '4XXError' => (object) array(
+        '400' => (object) array(
             'description' => '4XX series status codes indicate a problem with the request. The request is missing data, malformed or unauthorised.',
             'content' =>  array(
                 'application/json' => (object) array(
@@ -104,8 +108,9 @@ function moodle_webservice_function_to_openapi_path($function, $openapi) {
     }
     $path->$method->responses = moodle_webservice_returns_desc_to_openapi_responses($info->returns_desc, $info->name."_response", $openapi);
     if (($schema = moodle_external_description_to_openapi_schema($info->parameters_desc)) !== null) {
-        $name = $info->name.'_request';
+        $name = $info->name.'_parameters';
         $openapi->components->schemas->$name = $schema;
+        $openapi->components->schemas->$name->title = $name;
         $path->$method->requestBody = new stdClass();
         $path->$method->requestBody->content = new stdClass();
         $path->$method->requestBody->content->{'application/json'} = new stdClass();
@@ -117,11 +122,12 @@ function moodle_webservice_function_to_openapi_path($function, $openapi) {
 function moodle_webservice_returns_desc_to_openapi_responses($response, $name, $openapi) {
     $responses = new stdClass();
     
-    $responses->default = (object) array('$ref' => "#/components/responses/4XXError");
+    $responses->{400} = (object) array('$ref' => "#/components/responses/400");
     $responses->{200} = new stdClass();
     $responses->{200}->description = "this plugin will return 200 even if the call fails.";
     if (($schema = moodle_external_description_to_openapi_schema($response)) !== null) {
         $openapi->components->schemas->$name = $schema;
+        $openapi->components->schemas->$name->title = $name;
         $responses->{200}->content = new stdClass();
         $responses->{200}->content->{'application/json'} = new stdClass();
         $responses->{200}->content->{'application/json'}->schema = (object) array('$ref' => "#/components/schemas/$name");
@@ -168,7 +174,7 @@ function moodle_external_single_structure_to_openapi_schema(external_single_stru
             continue;
         }
         $schema->properties[$key] = $item_schema;
-        if (isset($keyvalue->required)) {
+        if (isset($keyvalue->required) && ($keyvalue->required === 1)) {
             $schema->required[] = "$key";
         }
     }
@@ -197,21 +203,85 @@ function moodle_external_multiple_structure_to_openapi_schema(external_multiple_
 function moodle_external_value_to_openapi_schema(external_value $value) {
     $schema = new stdClass();
     $schema->description = $value->desc;
-    if (isset($value->default)) {
+    if (isset($value->default) && is_string($value->default) && !empty($value->default)) {
         $schema->default = $value->default;
     }
     switch ($value->type) {
         case 'int':
             $schema->type = "integer";
+            if (isset($value->default)) {
+                $schema->default = (int)$value->default;
+            }
+            break;
+        case 'bool':
+            $schema->type = "boolean";
+            if (isset($value->default)) {
+                $schema->default = (bool)$value->default;
+            }
+            break;
+        case 'email':
+            $schema->type = "string";
+            $schema->format = "email";
+            break;
+        case 'base64':
+            $schema->type = "string";
+            $schema->format = "byte";
             break;
         case 'string':
             $schema->type = "string";
             break;
+        case 'alpha':
+            $schema->type = "string";
+            $schema->pattern = "^[a-zA-Z]+$";
+            break;
+        case 'alphaext':
+            $schema->type = "string";
+            $schema->pattern = "^[a-zA-Z0-9_\-]+$";
+            break;
+        case 'alphanum':
+            $schema->type = "string";
+            $schema->pattern = "^[a-zA-Z0-9]+$";
+            break;
+        case 'alphanumext':
+            $schema->type = "string";
+            $schema->pattern = "^[a-zA-Z0-9_\-]+$";
+            break;
+
+        case 'base64':
+            $schema->type = "string";
+            $schema->format = "byte";
+            break;
         case 'bool':
             $schema->type = "boolean";
             break;
+    
+        case 'email':
+            $schema->type = "string";
+            $schema->format = "email";
+            break;
+    
         case 'float':
             $schema->type = "number";
+            if (isset($value->default)) {
+                $schema->default = (float)$value->default;
+            }
+            break;
+    
+        case 'localisedfloat':
+            $schema->type = "number";
+            break;
+        
+        case 'host':
+            $schema->oneOf= array(
+                (object) array(
+                    'type' => 'string',
+                    'format' => 'hostname'
+                ),
+                (object) array(
+                    'type' => 'string',
+                    'format' => 'ipv4'
+                )
+            );
             break;
         default:
             $schema->type = "string";
