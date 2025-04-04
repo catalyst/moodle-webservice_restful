@@ -196,7 +196,7 @@ class webservice_restful_server extends webservice_base_server {
         $requestformat = '';
 
         if (isset($headers['HTTP_CONTENT_TYPE'])) {
-            $requestformat = ltrim($headers['HTTP_CONTENT_TYPE'], 'application/');
+            $requestformat = ltrim(explode(';', $headers['HTTP_CONTENT_TYPE'])[0], 'application/');
         } else {
             // Raise an error if content header not supplied.
             $ex = new \moodle_exception('notypeheader', 'webservice_restful', '');
