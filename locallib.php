@@ -226,6 +226,15 @@ class webservice_restful_server extends webservice_base_server {
             $parameters = $_POST;
         }
 
+        // Process GET variables if they exist.
+        if ($_GET) {
+            foreach ($_GET as $key => $value) {
+                if (!isset($parameters[$key])) {
+                    $parameters[$key] = $value;
+                }
+            }
+        }
+
         return $parameters;
     }
 
