@@ -27,7 +27,7 @@ defined('MOODLE_INTERNAL') || die();
 
 if ($hassiteconfig) {
     // Define the settings page.
-    $settings = new admin_settingpage('1webservice_restful', get_string('pluginname', 'webservice_restful'));
+    $settings = new admin_settingpage('webservice_restful', get_string('pluginname', 'webservice_restful'));
 
     // Support default Accept header.
     $settings->add(new admin_setting_configcheckbox('webservice_restful/supportdefaultacceptheader',
