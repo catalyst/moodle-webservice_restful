@@ -130,9 +130,7 @@ class webservice_restful_server extends webservice_base_server {
         }
 
         // Remove "Bearer " from the token.
-        if (get_config('webservice_restful', 'supportbearertokenauth')) {
-            $wstoken = str_replace('Bearer ', '', $wstoken);
-        }
+        $wstoken = str_replace('Bearer ', '', $wstoken);
 
         return $wstoken;
     }

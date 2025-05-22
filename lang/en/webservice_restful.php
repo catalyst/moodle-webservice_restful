@@ -30,6 +30,4 @@ $string['notypeheader'] = 'No Content Type header found in request sent to Moodl
 $string['nowsfunction'] = 'No webservice function found in URL sent to Moodle';
 $string['pluginname'] = 'RESTful protocol';
 $string['privacy:metadata'] = 'The RESTful protocol plugin does not store any personal data.';
-$string['supportbearertokenauth'] = 'Support bearer token authentication';
-$string['supportbearertokenauthdesc'] = 'If enabled, the RESTful protocol will support bearer token authentication by removing "Bearer " from the authentication header if it presents.';
 $string['restful:use'] = 'Use RESTful protocol';
