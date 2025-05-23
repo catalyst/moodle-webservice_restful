@@ -129,6 +129,9 @@ class webservice_restful_server extends webservice_base_server {
             $this->send_error($ex, 401);
         }
 
+        // Remove "Bearer " from the token.
+        $wstoken = str_replace('Bearer ', '', $wstoken);
+
         return $wstoken;
     }
 
