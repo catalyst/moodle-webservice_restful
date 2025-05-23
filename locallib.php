@@ -179,7 +179,11 @@ class webservice_restful_server extends webservice_base_server {
 
         if (isset($headers['HTTP_ACCEPT'])) {
             $responseformat = ltrim($headers['HTTP_ACCEPT'], 'application/');
-        } else {
+        } else if (get_config('webservice_restful', 'supportdefaultacceptheader')) {
+            $responseformat = get_config('webservice_restful', 'defaultacceptheader');
+        }
+
+        if (empty($responseformat)) {
             // Raise an error if accept header not supplied.
             $ex = new \moodle_exception('noacceptheader', 'webservice_restful', '');
             $this->send_error($ex, 400);
