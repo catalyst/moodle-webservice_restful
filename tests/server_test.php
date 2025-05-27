@@ -105,14 +105,24 @@ class server_test extends \advanced_testcase {
      */
     public function test_get_wstoken_error(): void {
         $headers = [];
-        $this->expectOutputString('{"exception":"moodle_exception",'
-                                .'"errorcode":"noauthheader",'
-                                .'"message":"No Authorization header found in request sent to Moodle"}');
+
+        // Capture the output instead of expecting a specific string
+        ob_start();
 
         // We're testing a private method, so we need to setup reflector magic.
         $method = new \ReflectionMethod('webservice_restful_server', 'get_wstoken');
         $method->setAccessible(true); // Allow accessing of private method.
         $proxy = $method->invoke(new \webservice_restful_server(WEBSERVICE_AUTHMETHOD_PERMANENT_TOKEN), $headers);
+
+        $output = ob_get_clean();
+
+        // Parse JSON and verify individual components
+        $decoded = json_decode($output, true);
+
+        $this->assertIsArray($decoded, 'Output should be valid JSON');
+        $this->assertStringEndsWith('moodle_exception', $decoded['exception']);
+        $this->assertEquals('noauthheader', $decoded['errorcode']);
+        $this->assertEquals('No Authorization header found in request sent to Moodle', $decoded['message']);
     }
 
     /**
@@ -143,14 +153,24 @@ class server_test extends \advanced_testcase {
      */
     public function test_get_wsfunction_error(): void {
         $getvars = [];
-        $this->expectOutputString('{"exception":"moodle_exception",'
-                                .'"errorcode":"nowsfunction",'
-                                .'"message":"No webservice function found in URL sent to Moodle"}');
+
+        // Capture the output instead of expecting a specific string
+        ob_start();
 
         // We're testing a private method, so we need to setup reflector magic.
         $method = new \ReflectionMethod('webservice_restful_server', 'get_wsfunction');
         $method->setAccessible(true); // Allow accessing of private method.
         $proxy = $method->invoke(new \webservice_restful_server(WEBSERVICE_AUTHMETHOD_PERMANENT_TOKEN), $getvars);
+
+        $output = ob_get_clean();
+
+        // Parse JSON and verify individual components
+        $decoded = json_decode($output, true);
+
+        $this->assertIsArray($decoded, 'Output should be valid JSON');
+        $this->assertStringEndsWith('moodle_exception', $decoded['exception']);
+        $this->assertEquals('nowsfunction', $decoded['errorcode']);
+        $this->assertEquals('No webservice function found in URL sent to Moodle', $decoded['message']);
     }
 
     /**
@@ -185,14 +205,24 @@ class server_test extends \advanced_testcase {
      */
     public function test_get_responseformat_error(): void {
         $headers = [];
-        $this->expectOutputString('{"exception":"moodle_exception",'
-                                .'"errorcode":"noacceptheader",'
-                                .'"message":"No Accept header found in request sent to Moodle"}');
+
+        // Capture the output instead of expecting a specific string
+        ob_start();
 
         // We're testing a private method, so we need to setup reflector magic.
         $method = new \ReflectionMethod('webservice_restful_server', 'get_responseformat');
         $method->setAccessible(true); // Allow accessing of private method.
         $proxy = $method->invoke(new \webservice_restful_server(WEBSERVICE_AUTHMETHOD_PERMANENT_TOKEN), $headers);
+
+        $output = ob_get_clean();
+
+        // Parse JSON and verify individual components
+        $decoded = json_decode($output, true);
+
+        $this->assertIsArray($decoded, 'Output should be valid JSON');
+        $this->assertStringEndsWith('moodle_exception', $decoded['exception']);
+        $this->assertEquals('noacceptheader', $decoded['errorcode']);
+        $this->assertEquals('No Accept header found in request sent to Moodle', $decoded['message']);
     }
 
     /**
@@ -227,13 +257,23 @@ class server_test extends \advanced_testcase {
      */
     public function test_get_requestformat_error(): void {
         $headers = [];
-        $this->expectOutputString('{"exception":"moodle_exception",'
-            .'"errorcode":"notypeheader",'
-            .'"message":"No Content Type header found in request sent to Moodle"}');
+
+        // Capture the output instead of expecting a specific string
+        ob_start();
 
         // We're testing a private method, so we need to setup reflector magic.
         $method = new \ReflectionMethod('webservice_restful_server', 'get_requestformat');
         $method->setAccessible(true); // Allow accessing of private method.
         $proxy = $method->invoke(new \webservice_restful_server(WEBSERVICE_AUTHMETHOD_PERMANENT_TOKEN), $headers);
+
+        $output = ob_get_clean();
+
+        // Parse JSON and verify individual components
+        $decoded = json_decode($output, true);
+
+        $this->assertIsArray($decoded, 'Output should be valid JSON');
+        $this->assertStringEndsWith('moodle_exception', $decoded['exception']);
+        $this->assertEquals('notypeheader', $decoded['errorcode']);
+        $this->assertEquals('No Content Type header found in request sent to Moodle', $decoded['message']);
     }
 }
