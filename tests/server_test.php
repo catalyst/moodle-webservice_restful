@@ -276,4 +276,89 @@ class server_test extends \advanced_testcase {
         $this->assertEquals('notypeheader', $decoded['errorcode']);
         $this->assertEquals('No Content Type header found in request sent to Moodle', $decoded['message']);
     }
+
+    /**
+     * Test send_headers method sets correct CORS headers with origin.
+     *
+     * @covers ::send_headers()
+     */
+    public function test_send_headers_with_origin(): void {
+        global $CFG;
+
+        // Skip test if headers_list function is not available (CLI environment)
+        if (PHP_SAPI === 'cli') {
+            $this->markTestSkipped('Cannot test headers in CLI environment');
+        }
+
+        // Mock the server class
+        $builder = $this->getMockBuilder('webservice_restful_server');
+        $builder->disableOriginalConstructor();
+        $stub = $builder->getMock();
+
+        // Set up $_SERVER with an origin
+        $_SERVER['HTTP_ORIGIN'] = 'https://example.com';
+
+        // Use reflection to access the protected method
+        $method = new \ReflectionMethod('webservice_restful_server', 'send_headers');
+        $method->setAccessible(true);
+
+        // Use output buffering to capture headers
+        ob_start();
+        $method->invoke($stub, 200);
+        ob_end_clean();
+
+        // Get all headers that were set
+        $headers = headers_list();
+
+        // Check that the correct CORS headers were set
+        $this->assertContains('Access-Control-Allow-Origin: https://example.com', $headers);
+        $this->assertContains('Access-Control-Allow-Credentials: true', $headers);
+        $this->assertContains('Access-Control-Allow-Methods: POST, GET, OPTIONS', $headers);
+        $this->assertContains('Access-Control-Allow-Headers: Content-Type, Authorization', $headers);
+        $this->assertContains('Access-Control-Max-Age: 86400', $headers);
+
+        // Clean up
+        unset($_SERVER['HTTP_ORIGIN']);
+    }
+
+    /**
+     * Test send_headers method sets correct CORS headers without origin.
+     *
+     * @covers ::send_headers()
+     */
+    public function test_send_headers_without_origin(): void {
+        global $CFG;
+
+        // Skip test if headers_list function is not available (CLI environment)
+        if (PHP_SAPI === 'cli') {
+            $this->markTestSkipped('Cannot test headers in CLI environment');
+        }
+
+        // Mock the server class
+        $builder = $this->getMockBuilder('webservice_restful_server');
+        $builder->disableOriginalConstructor();
+        $stub = $builder->getMock();
+
+        // Ensure no origin is set
+        unset($_SERVER['HTTP_ORIGIN']);
+
+        // Use reflection to access the protected method
+        $method = new \ReflectionMethod('webservice_restful_server', 'send_headers');
+        $method->setAccessible(true);
+
+        // Use output buffering to capture headers
+        ob_start();
+        $method->invoke($stub, 200);
+        ob_end_clean();
+
+        // Get all headers that were set
+        $headers = headers_list();
+
+        // Check that the correct CORS headers were set
+        $this->assertContains('Access-Control-Allow-Origin: *', $headers);
+        $this->assertNotContains('Access-Control-Allow-Credentials: true', $headers);
+        $this->assertContains('Access-Control-Allow-Methods: POST, GET, OPTIONS', $headers);
+        $this->assertContains('Access-Control-Allow-Headers: Content-Type, Authorization', $headers);
+        $this->assertContains('Access-Control-Max-Age: 86400', $headers);
+    }
 }
