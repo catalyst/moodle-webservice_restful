@@ -315,6 +315,12 @@ class webservice_restful_server extends webservice_base_server {
             die;
         };
 
+        // Handle OPTIONS preflight requests for CORS
+        if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+            $this->send_headers(200);
+            die;
+        }
+
         // Authenticate user, this has to be done after the request parsing
         // this also sets up $USER and $SESSION.
         $this->authenticate_user();
@@ -467,8 +473,18 @@ class webservice_restful_server extends webservice_base_server {
         header('Pragma: no-cache');
         header('Accept-Ranges: none');
         // Allow cross-origin requests only for Web Services.
-        // This allow to receive requests done by Web Workers or webapps in different domains.
-        header('Access-Control-Allow-Origin: *');
+        // This allows receiving requests done by Web Workers or webapps in different domains.
+        // For credentials to work, we need to set the specific origin instead of wildcard
+        $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+        if (!empty($origin)) {
+            header('Access-Control-Allow-Origin: ' . $origin);
+            header('Access-Control-Allow-Credentials: true');
+        } else {
+            header('Access-Control-Allow-Origin: *');
+        }
+        header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
+        header('Access-Control-Allow-Headers: Content-Type, Authorization');
+        header('Access-Control-Max-Age: 86400'); // 24-hour cache for preflight requests
     }
 
     /**
