@@ -27,7 +27,7 @@ This plugin aims to extend the maturity of Moodle's webservice interface to "Lev
 
 | Moodle version   | Branch            |
 |------------------|-------------------|
-| Moodle 4.2 - 4.4 | MOODLE_402_STABLE |
+| Moodle 4.2 - 4.5 | MOODLE_402_STABLE |
 | Moodle 3.9 - 4.1 | master            |
 
 ## Moodle Plugin Installation
